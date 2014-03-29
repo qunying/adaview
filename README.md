@@ -1,6 +1,7 @@
-adaview - An PS/PDF viewer written in Ada
+adaview - An PostScript/PDF viewer written in Ada
+=================================================
 
-This is another PS/PDF reader.  There are some features I would like to
+This is another PostScript/PDF reader.  There are some features I would like to
 have in a PS/PDF reader, but none of the existing ones have them all.
 And I would also like it to be simple.
 
