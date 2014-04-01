@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Adaview - PostScript/PDF viewer based on ghostscript                       --
+-- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --
@@ -17,17 +17,20 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed;
+
 package Adaview.Version is
+   use Ada.Strings.Fixed;
+
    Major : constant := 0;
    Minor : constant := 0;
    Patch : constant := 0;
    Date  : constant := 20140328;
    Text  : constant String :=
-     Integer'Image (Major) &
+     Trim (Integer'Image (Major), Ada.Strings.Left) &
      "." &
-     Integer'Image (Minor) &
+     Trim (Integer'Image (Minor), Ada.Strings.Left) &
      "." &
-     Integer'Image (Patch) &
-     " " &
+     Trim (Integer'Image (Patch), Ada.Strings.Left) &
      Integer'Image (Date);
 end Adaview.Version;

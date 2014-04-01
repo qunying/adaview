@@ -2,7 +2,7 @@
 -- gsapi - Ghostscript API Ada binding                                       --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
---
+--                                                                           --
 -- * Public API for Ghostscript interpreter                                  --
 -- * Current problems:                                                       --
 -- * 1. Ghostscript does not support multiple instances.                     --
@@ -24,16 +24,6 @@
 -------------------------------------------------------------------------------
 
 package body GSAPI is
-
-   function revision (pr : access revision_t; len : int) return Integer is
-      function gsapi_revision
-        (pr   : access revision_t;
-         len  : int)
-         return int;
-      pragma Import (C, gsapi_revision, "gsapi_revision");
-   begin
-      return Integer (gsapi_revision (pr, len));
-   end revision;
 
    function get_product (pr : revision_t) return String is
    begin

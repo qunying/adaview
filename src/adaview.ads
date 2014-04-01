@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Adaview - PostScript/PDF viewer based on ghostscript                       --
+-- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --

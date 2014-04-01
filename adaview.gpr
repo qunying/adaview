@@ -5,8 +5,7 @@ project Adaview is
    for Main use ("main.adb");
 
    package Linker is
-      for Linker_Options use ("-lgs");
-      for Default_Switches ("ada") use ("-g");
+      for Default_Switches ("ada") use ("-lgs");
    end Linker;
 
    package Pretty_Printer is

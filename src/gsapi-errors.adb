@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Adaview - A PostScript/PDF viewer based on ghostscript                    --
+-- gsapi - Ghostscript API Ada binding                                       --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --
@@ -17,46 +17,15 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;              use Ada.Text_IO;
-with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
-with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
+package body GSAPI.Errors is
 
-with GSAPI;        use GSAPI;
-with GSAPI.Errors; use GSAPI.Errors;
-with Interfaces.C; use Interfaces.C;
-with System;       use System;
+   function is_interrupt (ecode : Integer) return Boolean is
+   begin
+      if ecode = e_interrupt or ecode = e_timeout then
+         return True;
+      end if;
 
-with Adaview.Version;
+      return False;
+   end is_interrupt;
 
-procedure main is
-   gs_version : aliased revision_t;
-   instance   : aliased instance_t;
-   ret        : Integer;
-begin
-   Put_Line ("Adaview version " & Adaview.Version.Text);
-   if revision (gs_version'Access, gs_version'Size / 8) > 0 then
-      Put_Line ("GS revision size not matching the ghostscript library.");
-      return;
-   end if;
-
-   Put (get_product (gs_version) & ", ");
-   Put_Line (get_copyright (gs_version));
-   Put ("Revision ");
-   Put (get_revision_num (gs_version), 1);
-   Put (" - ");
-   Put (get_revision_date (gs_version), 1);
-   New_Line;
-
-   ret := new_instance (instance'Access, Null_Address);
-   if ret < 0 then
-      Put_Line ("call new instance failed.");
-      Put ("Error code: ");
-      Put (ret);
-      New_Line;
-   else
-      Put_Line ("Got instance.");
-   end if;
-
-   Put_Line ("delete instance");
-   delete_instance (instance);
-end main;
+end GSAPI.Errors;

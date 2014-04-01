@@ -10,7 +10,7 @@ all:
 	@if ! [ -d obj ]; then \
 	    mkdir obj; \
 	fi
-	@gnatmake -P adaview.gpr
+	@gprbuild -P adaview.gpr
 
 clean:
 	-rm obj/*
