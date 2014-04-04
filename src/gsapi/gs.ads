@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- gsapi - Ghostscript API Ada binding                                       --
+-- GhostScript API Ada binding                                               --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --
@@ -17,15 +17,6 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-package body GSAPI.Errors is
-
-   function is_interrupt (ecode : Integer) return Boolean is
-   begin
-      if ecode = e_interrupt or ecode = e_timeout then
-         return True;
-      end if;
-
-      return False;
-   end is_interrupt;
-
-end GSAPI.Errors;
+package GS is
+   pragma Pure;
+end GS;

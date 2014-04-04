@@ -1,13 +1,7 @@
 -------------------------------------------------------------------------------
--- gsapi - Ghostscript API Ada binding                                       --
+-- GhostScript API Ada binding                                               --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
---                                                                           --
--- * Public API for Ghostscript interpreter                                  --
--- * Current problems:                                                       --
--- * 1. Ghostscript does not support multiple instances.                     --
--- * 2. Global variables in gs_main_instance_default()                       --
--- *    and gsapi_instance_counter                                           --
 --                                                                           --
 -- This program is free software; you can redistribute it and/or modify      --
 -- it under the terms of the GNU General Public License as published by      --
@@ -23,26 +17,15 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-package body GSAPI is
+package body GS.Errors is
 
-   function get_product (pr : revision_t) return String is
+   function is_interrupt (ecode : Code_t) return Boolean is
    begin
-      return Interfaces.C.Strings.Value (pr.product);
-   end get_product;
+      if ecode = e_interrupt or ecode = e_timeout then
+         return True;
+      end if;
 
-   function get_copyright (pr : revision_t) return String is
-   begin
-      return Interfaces.C.Strings.Value (pr.copyright);
-   end get_copyright;
+      return False;
+   end is_interrupt;
 
-   function get_revision_num (pr : revision_t) return Long_Integer is
-   begin
-      return Long_Integer (pr.revision);
-   end get_revision_num;
-
-   function get_revision_date (pr : revision_t) return Long_Integer is
-   begin
-      return Long_Integer (pr.revisiondate);
-   end get_revision_date;
-
-end GSAPI;
+end GS.Errors;

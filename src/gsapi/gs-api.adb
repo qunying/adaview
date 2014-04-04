@@ -1,7 +1,13 @@
 -------------------------------------------------------------------------------
--- Adaview - A PostScript/PDF viewer based on ghostscript                    --
+-- GhostScript API Ada binding                                               --
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
+--                                                                           --
+-- * Public API for Ghostscript interpreter                                  --
+-- * Current problems:                                                       --
+-- * 1. Ghostscript does not support multiple instances.                     --
+-- * 2. Global variables in gs_main_instance_default()                       --
+-- *    and gsapi_instance_counter                                           --
 --                                                                           --
 -- This program is free software; you can redistribute it and/or modify      --
 -- it under the terms of the GNU General Public License as published by      --
@@ -17,46 +23,26 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;              use Ada.Text_IO;
-with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
-with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
+package body GS.API is
 
-with GS.API;       use GS.API;
-with GS.Errors;    use GS.Errors;
-with Interfaces.C; use Interfaces.C;
-with System;       use System;
+   function get_product (pr : revision_t) return String is
+   begin
+      return Interfaces.C.Strings.Value (pr.product);
+   end get_product;
 
-with Adaview.Version;
+   function get_copyright (pr : revision_t) return String is
+   begin
+      return Interfaces.C.Strings.Value (pr.copyright);
+   end get_copyright;
 
-procedure main is
-   gs_version : aliased revision_t;
-   instance   : aliased instance_t;
-   ret        : Code_t;
-begin
-   Put_Line ("Adaview version " & Adaview.Version.Text);
-   if revision (gs_version'Access, gs_version'Size / 8) > 0 then
-      Put_Line ("GS revision size not matching the ghostscript library.");
-      return;
-   end if;
+   function get_revision_num (pr : revision_t) return Long_Integer is
+   begin
+      return Long_Integer (pr.revision);
+   end get_revision_num;
 
-   Put (get_product (gs_version) & ", ");
-   Put_Line (get_copyright (gs_version));
-   Put ("Revision ");
-   Put (get_revision_num (gs_version), 1);
-   Put (" - ");
-   Put (get_revision_date (gs_version), 1);
-   New_Line;
+   function get_revision_date (pr : revision_t) return Long_Integer is
+   begin
+      return Long_Integer (pr.revisiondate);
+   end get_revision_date;
 
-   ret := new_instance (instance'Access, Null_Address);
-   if ret < 0 then
-      Put_Line ("call new instance failed.");
-      Put ("Error code: ");
-      Put (Integer (ret));
-      New_Line;
-   else
-      Put_Line ("Got instance.");
-   end if;
-
-   Put_Line ("delete instance");
-   delete_instance (instance);
-end main;
+end GS.API;
