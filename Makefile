@@ -5,12 +5,13 @@ APP := obj/adaview
 
 prefix :=/usr/local
 DESTDIR :=
+LIBRARY_TYPE := "relocatable"
 
 all:
 	@if ! [ -d obj ]; then \
 	    mkdir obj; \
 	fi
-	@gprbuild -P adaview.gpr
+	@gprbuild -P adaview.gpr -XLIBRARY_TYPE=$(LIBRARY_TYPE)
 
 clean:
 	-rm obj/*

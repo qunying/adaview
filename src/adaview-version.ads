@@ -24,13 +24,13 @@ package Adaview.Version is
 
    Major : constant := 0;
    Minor : constant := 0;
-   Patch : constant := 0;
    Date  : constant := 20140328;
    Text  : constant String :=
      Trim (Integer'Image (Major), Ada.Strings.Left) &
      "." &
      Trim (Integer'Image (Minor), Ada.Strings.Left) &
-     "." &
-     Trim (Integer'Image (Patch), Ada.Strings.Left) &
      Integer'Image (Date);
+
+   prgname     : constant String := "adaview";
+   description : constant String := "A PostScript/PDF viewer";
 end Adaview.Version;

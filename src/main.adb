@@ -28,6 +28,8 @@ with System;       use System;
 
 with Adaview.Version;
 
+with Gtkada.Intl; use Gtkada.Intl;
+
 procedure main is
    gs_version : aliased revision_t;
    instance   : aliased instance_t;
