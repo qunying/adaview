@@ -26,16 +26,27 @@ with GS.Errors;    use GS.Errors;
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
 
-with Adaview.Version;
+with Gtkada.Intl;    use Gtkada.Intl;
+with Gtk.Main.Extra; use Gtk.Main.Extra;
 
-with Gtkada.Intl; use Gtkada.Intl;
+with Adaview.Version;
+with Adaview.Config;
+with Adaview.Locale;
 
 procedure main is
    gs_version : aliased revision_t;
    instance   : aliased instance_t;
    ret        : Code_t;
 begin
-   Put_Line ("Adaview version " & Adaview.Version.Text);
+
+   Setlocale;
+   Text_Domain (Adaview.Version.prgname);
+   Bind_Text_Domain (Adaview.Version.prgname, Adaview.Locale.path);
+
+   if Adaview.Config.process_options = False then
+      return;
+   end if;
+
    if revision (gs_version'Access, gs_version'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
       return;

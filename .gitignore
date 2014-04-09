@@ -1,3 +1,5 @@
 *.o
 *.ali
+*.pot
 *.npp
+adaview-locale.ads

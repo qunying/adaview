@@ -4,7 +4,7 @@ use strict;
 
 ## If set to 1, all translations are set as empty. Otherwise, the translation
 ## is the same as the message itself
-my ($empty_translation) = 0;
+my ($empty_translation) = 1;
 
 my (%strings);
 my (@modules);
@@ -69,8 +69,7 @@ chomp ($date);
 
 print <<EOF
 # Translation file for Adaview
-# Copyright (C) 2005 AdaCore
-# Copright (C) 2014 Zhu Qun-Ying
+# Copyright (C) 2014 Zhu Qun-Ying
 #
 msgid ""
 msgstr ""
@@ -78,7 +77,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: zhu.qunying\@gmail.com\\n"
 "POT-Creation-Date: $date\\n"
 "PO-Revision-Date: \\n"
-"Last-Translator: Zhu Qun-Ying\\n"
+"Last-Translator: \\n"
 "Language-Team: \\n"
 "MIME-Version: 1.0\\n"
 "Content-Type: text/plain; charset=UTF-8\\n"

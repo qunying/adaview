@@ -17,23 +17,11 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Glib;
+-- Define adaview's configuration and command line arguments
+package Adaview.Config is
 
-package Adaview.Version is
-   use Ada.Strings.Fixed;
-
-   Major : constant := 0;
-   Minor : constant := 0;
-   Date  : constant := 20140328;
-   Text  : constant Glib.UTF8_String :=
-     Trim (Integer'Image (Major), Ada.Strings.Left) &
-     "." &
-     Trim (Integer'Image (Minor), Ada.Strings.Left) &
-     Integer'Image (Date);
-
-   prgname     : constant String := "adaview";
-
-   function get_description return Glib.UTF8_String;
-
-end Adaview.Version;
+   function process_options return Boolean;
+   -- Parse command line arguments.
+   -- Return False when error.
+   -- Currently, only --version/-v is added in.
+end Adaview.Config;

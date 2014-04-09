@@ -17,23 +17,11 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Glib;
+with Gtkada.Intl; use Gtkada.Intl;
 
-package Adaview.Version is
-   use Ada.Strings.Fixed;
-
-   Major : constant := 0;
-   Minor : constant := 0;
-   Date  : constant := 20140328;
-   Text  : constant Glib.UTF8_String :=
-     Trim (Integer'Image (Major), Ada.Strings.Left) &
-     "." &
-     Trim (Integer'Image (Minor), Ada.Strings.Left) &
-     Integer'Image (Date);
-
-   prgname     : constant String := "adaview";
-
-   function get_description return Glib.UTF8_String;
-
+package body Adaview.Version is
+   function get_description return Glib.UTF8_String is
+   begin
+      return -("A PostScript/PDF viewer.");
+   end get_description;
 end Adaview.Version;
