@@ -47,9 +47,8 @@ package body Adaview.Config is
    begin
       Put (prgname & " " & Adaview.Version.Text & " - ");
       Put_Line (get_description);
-      Put_Line
-        (-("This program is free software released under " &
-           "the GPLv3 or latter."));
+      Put_Line (get_copyright);
+      Put_Line (get_license);
    end print_version;
 
    function process_options return Boolean is
@@ -60,13 +59,13 @@ package body Adaview.Config is
       Opts (1).Long_Name   := New_String ("version");
       Opts (1).Short_Name  := 'v';
       Opts (1).Description :=
-         New_String (-("Display version information"));
+         New_String (-"Display version information");
       Opts (1).Arg         := G_Option_Arg_None;
       Opts (1).Arg_Data    := To_Address (Show_Version'Access);
 
       ret := Init_With_Args (get_description, Opts, prgname, error'Access);
       if (ret = False) then
-         Put_Line (-("Error: ") & Get_Message (error));
+         Put_Line (-"Error: " & Get_Message (error));
          return False;
       end if;
       if Show_Version /= 0 then

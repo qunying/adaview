@@ -3,7 +3,7 @@
 
 APP := obj/adaview
 
-prefix :=/usr/local
+prefix :=/usr
 localedir :=${prefix}/share/locale
 DESTDIR :=
 LIBRARY_TYPE := "relocatable"

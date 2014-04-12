@@ -35,5 +35,11 @@ package Adaview.Version is
    prgname     : constant String := "adaview";
 
    function get_description return Glib.UTF8_String;
+   -- return program description message
 
+   function get_copyright return Glib.UTF8_String;
+   -- return program copyright information
+
+   function get_license return Glib.UTF8_String;
+   -- return program license information
 end Adaview.Version;

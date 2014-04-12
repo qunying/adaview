@@ -22,6 +22,16 @@ with Gtkada.Intl; use Gtkada.Intl;
 package body Adaview.Version is
    function get_description return Glib.UTF8_String is
    begin
-      return -("A PostScript/PDF viewer.");
+      return -"A PostScript/PDF viewer.";
    end get_description;
+
+   function get_copyright return Glib.UTF8_String is
+   begin
+      return -"Copyright (C) 2014 Zhu Qun-Ying";
+   end get_copyright;
+
+   function get_license return Glib.UTF8_String is
+   begin
+      return -("This program is free software released under the GPLv3 or latter.");
+   end get_license;
 end Adaview.Version;
