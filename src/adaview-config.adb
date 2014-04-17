@@ -3,12 +3,14 @@
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --
--- This program is free software; you can redistribute it and/or modify      --
+-- This file is part of Adaview.                                             --
+--                                                                           --
+-- Adaview is free software; you can redistribute it and/or modify           --
 -- it under the terms of the GNU General Public License as published by      --
 -- the Free Software Foundation; either version 3 of the License, or         --
 -- (at your option) any later version.                                       --
 --                                                                           --
--- This program is distributed in the hope that it will be useful,           --
+-- Adaview is distributed in the hope that it will be useful,                --
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of            --
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             --
 -- GNU General Public License for more details.                              --
@@ -48,6 +50,7 @@ package body Adaview.Config is
       Put (prgname & " " & Adaview.Version.Text & " - ");
       Put_Line (get_description);
       Put_Line (get_copyright);
+      New_Line;
       Put_Line (get_license);
    end print_version;
 

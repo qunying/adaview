@@ -3,12 +3,14 @@
 --                                                                           --
 -- Copyright (c) 2014 Zhu Qun-Ying.                                          --
 --                                                                           --
--- This program is free software; you can redistribute it and/or modify      --
+-- This file is part of Adaview.                                             --
+--                                                                           --
+-- Adaview is free software; you can redistribute it and/or modify           --
 -- it under the terms of the GNU General Public License as published by      --
 -- the Free Software Foundation; either version 3 of the License, or         --
 -- (at your option) any later version.                                       --
 --                                                                           --
--- This program is distributed in the hope that it will be useful,           --
+-- Adaview is distributed in the hope that it will be useful,                --
 -- but WITHOUT ANY WARRANTY; without even the implied warranty of            --
 -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             --
 -- GNU General Public License for more details.                              --
@@ -18,6 +20,44 @@
 -------------------------------------------------------------------------------
 
 with Interfaces.C;
+
+-- display device definition from ghostscript/gdevdsp.h
+
+--
+-- The callback structure must be provided by calling the
+-- Ghostscript APIs in the following order:
+-- GS.API.new_instance (minst);
+-- GS.API.set_display_callback (minst, callback);
+-- GS.API.init_with_args (minst, argc, argv);
+--
+-- Supported parameters and default values are:
+-- -sDisplayHandle=16#04d2 or 1234         string
+--    Caller supplied handle as a decimal or hexadecimal number
+--    in a string.  On 32-bit platforms, it may be set
+--    using -dDisplayHandle=1234 for backward compatibility.
+--    Included as first parameter of all callback functions.
+--
+-- -dDisplayFormat=0                       long
+--    Color format specified using bitfields below.
+--    Included as argument of display_size() and display_presize()
+-- These can only be changed when the device is closed.
+--
+-- The second parameter of all callback functions "void *device"
+-- is the address of the Ghostscript display device instance.
+-- The arguments "void *handle" and "void *device" together
+-- uniquely identify an instance of the display device.
+--
+-- A typical sequence of callbacks would be
+--  open, presize, memalloc, size, sync, page
+--  presize, memfree, memalloc, size, sync, page
+--  preclose, memfree, close
+-- The caller should not access the image buffer:
+--  - before the first sync
+--  - between presize and size
+--  - after preclose
+-- If opening the device fails, you might see the following:
+--  open, presize, memalloc, memfree, close
+--
 
 package GS.Display_Device is
 
@@ -106,6 +146,7 @@ package GS.Display_Device is
       -- format.
 
    end record;
+   pragma Convention (C, display_callback_t);
    -- Note that for Windows, the display callback functions are
    -- cdecl, not stcall.  This differs from those in GS.API.
 
