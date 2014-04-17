@@ -5,8 +5,8 @@ This is another PostScript/PDF reader.  There are some features I would like to
 have in a PS/PDF reader, but none of the existing ones have them all.
 And I would also like it to be simple.
 
-Currently just use ghostscript for both PS and PDF. Latter maybe use
-mupdf for PDF reading.
+Currently just use [Ghostscript](http://ghostscript.com)  for both PS
+and PDF. Latter maybe use [mupdf](http://mupdf.com) for PDF reading.
 
 Some plan features:
   1. Could change the backgroud color easily.
