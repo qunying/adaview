@@ -8,6 +8,9 @@
 #     in the form of -(" text "" text ") for it to work.
 #   * Add translation for Ada.Characters.Latin1.LF besides ASCII.LF
 #   * Only check directories under ../src, don't lookup other places
+#   * Make the script more generic and don't hardcode any project
+#     specific information. Use parameters for project id, copyright year
+#     , owner and bug report.
 
 use strict;
 use Text::Balanced 'extract_bracketed';
@@ -19,6 +22,11 @@ my ($empty_translation) = 1;
 my (%strings);
 my (@modules);
 my ($msg);
+
+my ($proj_id) = shift;
+my ($copyright_year) = shift;
+my ($copyright_owner) = shift;
+my ($bug_report) = shift;
 
 # Find the list of modules
 sub analyze_dir () {
@@ -103,13 +111,13 @@ my ($date) = `date +'%Y-%m-%d %H:%M%z'`;
 chomp ($date);
 
 print <<EOF
-# Translation file for Adaview
-# Copyright (C) 2014 Zhu Qun-Ying
+# Translation file for $proj_id
+# Copyright (C) $copyright_year $copyright_owner
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: adaview 0.0\\n"
-"Report-Msgid-Bugs-To: zhu.qunying\@gmail.com\\n"
+"Project-Id-Version: $proj_id\\n"
+"Report-Msgid-Bugs-To: $bug_report\\n"
 "POT-Creation-Date: $date\\n"
 "PO-Revision-Date: \\n"
 "Last-Translator: \\n"
