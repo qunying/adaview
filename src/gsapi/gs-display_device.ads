@@ -138,6 +138,8 @@ package GS.Display_Device is
      (handle : System.Address;
       device : System.Address)
       return   int;
+   pragma Convention (C, disp_cb_t);
+
    type disp_presize_cb_t is access function
      (handle : System.Address;
       device : System.Address;
@@ -146,6 +148,8 @@ package GS.Display_Device is
       raster : int;
       format : unsigned)
       return   int;
+   pragma Convention (C, disp_presize_cb_t);
+
    type disp_size_cb_t is access function
      (handle : System.Address;
       device : System.Address;
@@ -155,12 +159,15 @@ package GS.Display_Device is
       format : unsigned;
       pimage : access unsigned_char)
       return   int;
+   pragma Convention (C, disp_size_cb_t);
+
    type disp_page_cb_t is access function
      (handle : System.Address;
       device : System.Address;
       copies : int;
       flush  : int)
       return   int;
+   pragma Convention (C, disp_page_cb_t);
 
    type disp_update_cb_t is access function
      (handle : System.Address;
@@ -170,16 +177,22 @@ package GS.Display_Device is
       w      : int;
       h      : int)
       return   int;
+   pragma Convention (C, disp_update_cb_t);
+
    type disp_memalloc_cb_t is access function
      (handle : System.Address;
       device : System.Address;
       size   : unsigned_long)
       return   System.Address;
+   pragma Convention (C, disp_memalloc_cb_t);
+
    type disp_memfree_cb_t is access function
      (handle : System.Address;
       device : System.Address;
       mem    : System.Address)
       return   int;
+   pragma Convention (C, disp_memfree_cb_t);
+
    type disp_separation_cb_t is access function
      (handle         : System.Address;
       device         : System.Address;
@@ -190,6 +203,7 @@ package GS.Display_Device is
       y              : unsigned_short;
       k              : unsigned_short)
       return           int;
+   pragma Convention (C, disp_separation_cb_t);
 
    type display_callback_t is record
       size : int;

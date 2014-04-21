@@ -21,7 +21,7 @@
 
 package body GS.Errors is
 
-   function is_interrupt (ecode : Code_t) return Boolean is
+   function is_interrupt (ecode : code_t) return Boolean is
    begin
       if ecode = e_interrupt or ecode = e_timeout then
          return True;
