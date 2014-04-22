@@ -25,7 +25,7 @@ my ($msg);
 
 my ($proj_id) = shift;
 my ($copyright_year) = shift;
-my ($copyright_owner) = shift;
+my ($author) = shift;
 my ($bug_report) = shift;
 
 # Find the list of modules
@@ -112,7 +112,7 @@ chomp ($date);
 
 print <<EOF
 # Translation file for $proj_id
-# Copyright (C) $copyright_year $copyright_owner
+# Copyright (C) $copyright_year $author
 #
 msgid ""
 msgstr ""
