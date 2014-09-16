@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: adaview\n"
 "Report-Msgid-Bugs-To: zhu.qunying@gmail.com\n"
-"POT-Creation-Date: 2014-04-16 17:47-0700\n"
+"POT-Creation-Date: 2014-09-16 10:16-0700\n"
 "PO-Revision-Date: 2014-04-16 17:47-0700\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -14,9 +14,21 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: adaview-config.adb
+msgid "Display version information"
+msgstr "显示版本信息"
+
+#: adaview-config.adb
+msgid "Error: "
+msgstr "错误: "
+
 #: adaview-version.adb
 msgid "A PostScript/PDF viewer."
 msgstr "PostScript/PDF 浏览器"
+
+#: adaview-version.adb
+msgid "Copyright (C) 2014 Zhu Qun-Ying"
+msgstr "著作版权所有 (C) 2014 朱群英"
 
 #: adaview-version.adb
 msgid ""
@@ -42,15 +54,3 @@ msgstr ""
 "\n"
 "您应已收到附随于本程序的GNU通用公共授权的副本; 如果没有, 请看\n"
 "<http://www.gnu.org/licenses/>。\n"
-
-#: adaview-version.adb
-msgid "Copyright (C) 2014 Zhu Qun-Ying"
-msgstr "著作版权所有 (C) 2014 朱群英"
-
-#: adaview-config.adb
-msgid "Display version information"
-msgstr "显示版本信息"
-
-#: adaview-config.adb
-msgid "Error: "
-msgstr "错误: "
