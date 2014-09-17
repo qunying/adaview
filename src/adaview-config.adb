@@ -38,8 +38,8 @@ package body Adaview.Config is
    type gboolean_access is access all Gboolean;
 
    function To_Address (C : gboolean_access) return System.Address is
-      function Convert is new Ada.Unchecked_Conversion (
-         gboolean_access,
+      function Convert is new Ada.Unchecked_Conversion
+        (gboolean_access,
          Glib.C_Proxy);
    begin
       return Glib.To_Address (Convert (C));
@@ -61,8 +61,7 @@ package body Adaview.Config is
       -- fill in the option
       Opts (1).Long_Name   := New_String ("version");
       Opts (1).Short_Name  := 'v';
-      Opts (1).Description :=
-         New_String (-"Display version information");
+      Opts (1).Description := New_String (-"Display version information");
       Opts (1).Arg         := G_Option_Arg_None;
       Opts (1).Arg_Data    := To_Address (Show_Version'Access);
 
