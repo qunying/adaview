@@ -48,4 +48,17 @@ package Gtk.Main.Extra is
    --
    -- Return             : True if the windowing system has been successfully
    --                      initialized, False otherwise.
+
+   function Get_Option_Group (Open_Default_Display: Boolean := Standard.True)
+     return GOption_Group;
+   -- Returns a GOptionGroup for the commandline arguments recognized by GTK+
+   -- and GDK.
+   --
+   -- You should add this group to your GOption_Context with Add_Group,
+   -- if you are using Glib.Option.Extra.Parse to parse your commandline
+   -- arguments.
+   -- Open_Default_Display : whether to open the default display when parsing
+   --                        the commandline arguments.
+   --                        Default is true.
+
 end Gtk.Main.Extra;

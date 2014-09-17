@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
--- Adaview - A PostScript/PDF viewer based on ghostscript                    --
---                                                                           --
--- Copyright (c) 2014 Zhu Qun-Ying.                                          --
+-- Glib.Option.Extra - A child package to add g_option_context_parse()      --
+-- Copyright (c) 2014, Zhu Qun-Ying.                                         --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,29 +18,32 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed;
-with Glib;
+with System;
+with Interfaces.C;
 
-package Adaview.Version is
-   use Ada.Strings.Fixed;
+package body Glib.Option.Extra is
+   gnat_argc : Interfaces.C.int;
+   pragma Import (C, gnat_argc);
 
-   Major : constant                  := 0;
-   Minor : constant                  := 0;
-   Date  : constant                  := 20140328;
-   Text  : constant Glib.UTF8_String :=
-     Trim (Integer'Image (Major), Ada.Strings.Left) &
-     "." &
-     Trim (Integer'Image (Minor), Ada.Strings.Left) &
-     Integer'Image (Date);
+   gnat_argv : System.Address;
+   pragma Import (C, gnat_argv);
 
-   prgname : constant String := "adaview";
+   function Parse
+     (Ctx   : Goption_Context;
+      error : access GError) return Boolean is
+      function Internal
+        (context : System.Address;
+         argc    : System.Address;
+         argv    : System.Address;
+         err     : access GError) return Gboolean;
+      pragma Import (C, Internal, "g_option_context_parse");
+   begin
+      return Boolean'Val
+          (Internal
+             (Get_Object (Ctx),
+              gnat_argc'Address,
+              gnat_argv'Address,
+              error));
+   end Parse;
 
-   function get_description return Glib.UTF8_String;
-   -- return program description message
-
-   function get_copyright return Glib.UTF8_String;
-   -- return program copyright information
-
-   function get_license return Glib.UTF8_String;
-   -- return program license information
-end Adaview.Version;
+end Glib.Option.Extra;

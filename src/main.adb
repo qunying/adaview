@@ -53,7 +53,7 @@ begin
       Put_Line ("GS revision size not matching the ghostscript library.");
       return;
    end if;
-
+--   Gtk.Main.Init;
    Put (get_product (gs_version) & ", ");
    Put_Line (get_copyright (gs_version));
    Put ("Revision ");

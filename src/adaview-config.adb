@@ -21,11 +21,12 @@
 with Ada.Text_IO;          use Ada.Text_IO;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 
-with Glib.Option;    use Glib.Option;
-with Gtk.Main.Extra; use Gtk.Main.Extra;
-with Gtkada.Intl;    use Gtkada.Intl;
-with Glib.Error;     use Glib.Error;
-with Glib;           use Glib;
+with Glib.Option;       use Glib.Option;
+with Glib.Option.Extra; use Glib.Option.Extra;
+with Gtk.Main.Extra;    use Gtk.Main.Extra;
+with Gtkada.Intl;       use Gtkada.Intl;
+with Glib.Error;        use Glib.Error;
+with Glib;              use Glib;
 
 with Adaview.Version; use Adaview.Version;
 
@@ -33,7 +34,9 @@ with System;
 with Ada.Unchecked_Conversion;
 
 package body Adaview.Config is
+   Opts_Ctx     : GOption_Context;
    Opts         : GOption_Entry_Array (1 .. 2);
+   GTK_Opts_Grp : GOption_Group;
    Show_Version : aliased Gboolean;
    type gboolean_access is access all Gboolean;
 
@@ -65,7 +68,13 @@ package body Adaview.Config is
       Opts (1).Arg         := G_Option_Arg_None;
       Opts (1).Arg_Data    := To_Address (Show_Version'Access);
 
-      ret := Init_With_Args (get_description, Opts, prgname, error'Access);
+      Opts_Ctx := G_New;
+      Add_Main_Entries (Opts_Ctx, Opts);
+      Set_Summary (Opts_Ctx, get_description);
+      GTK_Opts_Grp := Get_Option_Group (False);
+      Add_Group (Opts_Ctx, GTK_Opts_Grp);
+      Set_Help_Enabled (Opts_Ctx, True);
+      ret := Parse (Opts_Ctx, error'Access);
       if (ret = False) then
          Put_Line (-"Error: " & Get_Message (error));
          return False;

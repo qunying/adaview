@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Gtk.Main.Extra - A child package to add gtk_init_with_args()              --
+--                  and gtk_get_option_group ()                              --
 -- Copyright (c) 2014, Zhu Qun-Ying.                                         --
 --                                                                           --
 -- This file is part of Adaview.                                             --
@@ -53,4 +54,13 @@ package body Gtk.Main.Extra is
                     translation_domain & ASCII.NUL,
                     error));
    end Init_With_Args;
+
+   function Get_Option_Group (Open_Default_Display: Boolean := Standard.True)
+                              return GOption_Group is
+      function Internal (default_open : Gboolean) return GOption_Group;
+      pragma Import (C, Internal, "gtk_get_option_group");
+   begin
+      return Internal (Boolean'Pos (Open_Default_Display));
+   end Get_Option_Group;
+
 end Gtk.Main.Extra;
