@@ -13,7 +13,7 @@ locale_path_ads=src/adaview-locale.ads
 
 function generate_locale_path_ads() {
     echo "Generating $locale_path_ads for $localedir"
-    gen_time=`date +"%F %R"`
+    gen_time=`date +"%F %R%z"`
     cat > $locale_path_ads <<EOF
 -- This is an automatically generated file during compilation
 -- Please don't edit it by hand.
