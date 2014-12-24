@@ -22,11 +22,14 @@
 with Ada.Text_IO;              use Ada.Text_IO;
 with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
 with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
+with Ada.Command_Line;         use Ada.Command_Line;
 
-with GS.API;       use GS.API;
-with GS.Errors;    use GS.Errors;
+with Ada.Strings.Bounded;
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
+
+with GS.API;    use GS.API;
+with GS.Errors; use GS.Errors;
 
 with Gtkada.Intl;    use Gtkada.Intl;
 with Gtk.Main.Extra; use Gtk.Main.Extra;
@@ -35,25 +38,70 @@ with Adaview.Version;
 with Adaview.Config;
 with Adaview.Locale;
 
-procedure main is
-   gs_version : aliased revision_t;
-   instance   : aliased instance_t;
-   ret        : Code_t;
+procedure Adaview_main is
+   gs_version  : aliased revision_t;
+   instance    : aliased instance_t;
+   ret         : code_t;
+   doc_ctx     : Adaview.Config.context_t;
+   matched_idx : Natural;
+
+   package BString renames Adaview.Config.BString;
+
 begin
 
    Setlocale;
    Text_Domain (Adaview.Version.prgname);
    Bind_Text_Domain (Adaview.Version.prgname, Adaview.Locale.path);
 
-   if Adaview.Config.process_options = False then
+   Adaview.Config.process_options;
+
+   -- we only use the first unknow argument as file name
+   if Argument_Count > 2 then
+      Put_Line ("Too many arguments.");
+      Set_Exit_Status (Failure);
       return;
+   end if;
+
+   Adaview.Config.load_config (doc_ctx);
+
+   if Argument_Count >= 1 then
+      doc_ctx.current_doc.name := BString.To_Bounded_String ((Argument (1)));
+      Put_Line
+        ("Got document: " & BString.To_String (doc_ctx.current_doc.name));
+      doc_ctx.current_doc.checksum :=
+        Adaview.Config.get_file_md5 (doc_ctx.current_doc.name);
+      Put_Line ("md5: " & doc_ctx.current_doc.checksum);
+      if (Argument_Count = 2) then
+         doc_ctx.current_doc.cur_page := Integer'Value (Argument (2));
+      end if;
+      -- try to see if we have the file in the history
+      for i in 1 .. doc_ctx.total_doc loop
+         if doc_ctx.current_doc.checksum = doc_ctx.history (i).checksum then
+            -- we found an entry
+            Put_Line ("we got an entry in the history.");
+            matched_idx := i;
+            if BString.To_String (doc_ctx.current_doc.name) /=
+              BString.To_String (doc_ctx.history (i).name)
+            then
+               doc_ctx.history (i).name := doc_ctx.current_doc.name;
+               doc_ctx.history_changed  := True;
+            end if;
+            if i /= 1 then
+               doc_ctx.history_changed := True;
+            end if;
+            exit;
+         end if;
+      end loop;
+   else
+      Put_Line ("No more argument");
    end if;
 
    if revision (gs_version'Access, gs_version'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
       return;
    end if;
---   Gtk.Main.Init;
+
+   --   Gtk.Main.Init;
    Put (get_product (gs_version) & ", ");
    Put_Line (get_copyright (gs_version));
    Put ("Revision ");
@@ -74,4 +122,5 @@ begin
 
    Put_Line ("delete instance");
    delete_instance (instance);
-end main;
+   Adaview.Config.save_config (doc_ctx);
+end Adaview_main;

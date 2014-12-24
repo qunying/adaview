@@ -1,6 +1,6 @@
 #!/bin/sh
 # generate a locale path according to prefix location
-#for used in Bind_Text_Domain
+# for used in Bind_Text_Domain
 
 if [ "$#" != "1" ]; then
     echo "please enter prefix location."
@@ -26,7 +26,7 @@ EOF
 }
 
 if [ -f "$locale_path_ads" ]; then
-    grep -w "${localedir}" $locale_path_ads > /dev/null
+    grep -w "\"${localedir}\"" $locale_path_ads > /dev/null
     if [ "$?" != "0" ]; then
 	generate_locale_path_ads
     fi

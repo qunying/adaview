@@ -20,10 +20,60 @@
 -------------------------------------------------------------------------------
 
 -- Define adaview's configuration and command line arguments
+
+with Ada.Strings.Bounded;
+with GNAT.MD5;
+
 package Adaview.Config is
 
-   function process_options return Boolean;
+   md5_length                 : constant := 32;
+   max_file_path_length       : constant := 512;
+   max_recent_document_number : constant := 10;
+   -- store only 10 recent documents, may change to configuratble
+   Parameter_Error : exception;
+
+   type byte_t is mod 2**8;
+   type byte_string_t is array (Natural range <>) of byte_t;
+
+   package BString is new Ada.Strings.Bounded.Generic_Bounded_Length
+     (Max => max_file_path_length);
+   subtype path_string_t is BString.Bounded_String;
+
+   type doc_class_t is (UNKNOWN, PS, PDF);
+
+   type doc_t is record
+      name       : path_string_t;
+      temp_name  : path_string_t;
+      checksum   : String (1 .. md5_length);
+      class      : doc_class_t := UNKNOWN;
+      cur_page   : Natural := 0;
+      total_page : Natural := 0;
+   end record;
+
+   type doc_history_t is array (Positive range <>) of doc_t;
+
+   type context_t is record
+      config_file     : path_string_t;
+      data_file       : path_string_t;
+      current_doc     : doc_t;
+      history         : doc_history_t (1 .. max_recent_document_number);
+      total_doc       : Natural := 0;
+      history_changed : Boolean := False;
+   end record;
+
+   procedure process_options;
    -- Parse command line arguments.
-   -- Return False when error.
-   -- Currently, only --version/-v is added in.
+   -- Raise exception Parameter_Error when arugment parsing failed
+
+   function get_file_md5 (file_name : BString.Bounded_String) return String;
+   -- Calculate the MD5 sum of a given file
+
+   procedure load_config (ctx : in out context_t);
+   -- load configuration and recent histories
+
+   procedure save_config (ctx : in context_t);
+
+private
+   procedure load_history (ctx : in out context_t);
+   procedure save_history (ctx : in context_t);
 end Adaview.Config;
