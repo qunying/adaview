@@ -45,8 +45,8 @@ package Adaview.Config is
    type doc_class_t is (UNKNOWN, PS, PDF);
 
    type doc_t is record
-      name       : path_string_t;
-      temp_name  : path_string_t;
+      name       : path_string_t := To_Bounded_String("");
+      temp_name  : path_string_t := To_Bounded_String("");
       checksum   : String (1 .. md5_length);
       class      : doc_class_t := UNKNOWN;
       cur_page   : Natural := 0;

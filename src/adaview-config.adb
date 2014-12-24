@@ -164,7 +164,8 @@ package body Adaview.Config is
      (file_name : in     Bounded_String;
       temp_name : in out Bounded_String;
       comp_type : in     compress_t) is
-      template_name : String := ("/tmp/adaviewXXXXXX" & ACL.NUL);
+      base          : String := Base_Name (To_String (file_name));
+      template_name : String := ("/tmp/adaview-" & base & ".XXXXXX" & ACL.NUL);
       cmd_ptr       : System.OS_Lib.String_Access;
       arguments     : System.OS_Lib.Argument_List (1 .. 2);
       fd            : System.OS_Lib.File_Descriptor;
@@ -172,8 +173,8 @@ package body Adaview.Config is
       function c_mkstemp
         (filename : System.Address) return System.OS_Lib.File_Descriptor;
       pragma Import (C, c_mkstemp, "mkstemp");
-      function sys (Arg : Char_Array) return Integer;
-      pragma Import(C, Sys, "system");
+      function sys (Arg : char_array) return Integer;
+      pragma Import (C, sys, "system");
    begin
       fd := c_mkstemp (template_name'Address);
       if fd = -1 then
@@ -193,7 +194,15 @@ package body Adaview.Config is
          when others =>
             null;
       end case;
-      ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name) & " > " & template_name));
+      ret :=
+        sys
+          (To_C
+             (cmd_ptr.all &
+              " -dc " &
+              To_String (file_name) &
+              " > " &
+              template_name));
+
       Put_Line ("decompress result: " & Integer'Image (ret));
    end decompress_file;
 

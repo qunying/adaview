@@ -29,7 +29,7 @@ project Adaview is
             for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
 
          when "relocatable" =>
-            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0", "-nM", "-N");
+            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
       end case;
    end Pretty_Printer;
 
