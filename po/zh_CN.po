@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: adaview\n"
 "Report-Msgid-Bugs-To: zhu.qunying@gmail.com\n"
-"POT-Creation-Date: 2014-09-16 10:16-0700\n"
-"PO-Revision-Date: 2014-04-16 17:47-0700\n"
+"POT-Creation-Date: 2014-12-23 17:59-0800\n"
+"PO-Revision-Date: 2014-12-23 17:59-0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
@@ -15,8 +15,20 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: adaview-config.adb
-msgid "Display version information"
+msgid "Usage: adaview [OPTIONS...] [file [page]]"
+msgstr "使用: adaview [选项] [文件 [页数]]"
+
+#: adaview-config.adb
+msgid "Show version information"
 msgstr "显示版本信息"
+
+#: adaview-config.adb
+msgid "Show help options"
+msgstr "显示帮助信息"
+
+#: adaview-config.adb
+msgid "Show all help options"
+msgstr "显示全部的帮助信息"
 
 #: adaview-config.adb
 msgid "Error: "
