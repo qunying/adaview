@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: adaview\n"
 "Report-Msgid-Bugs-To: zhu.qunying@gmail.com\n"
 "POT-Creation-Date: 2014-12-23 17:59-0800\n"
-"PO-Revision-Date: 2014-12-23 17:59-0800\n"
+"PO-Revision-Date: 2014-12-23 19:28-0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
@@ -16,7 +16,7 @@ msgstr ""
 
 #: adaview-config.adb
 msgid "Usage: adaview [OPTIONS...] [file [page]]"
-msgstr "使用: adaview [选项] [文件 [页数]]"
+msgstr "用法: adaview [选项] [文件 [页数]]"
 
 #: adaview-config.adb
 msgid "Show version information"
