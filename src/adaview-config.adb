@@ -34,6 +34,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
 with System.Address_To_Access_Conversions;
 with Ada.Characters.Latin_1;
+use Interfaces.C;
 
 with Glib.Option;       use Glib.Option;
 with Glib.Option.Extra; use Glib.Option.Extra;
@@ -43,7 +44,7 @@ with Glib.Error;        use Glib.Error;
 with Glib;              use Glib;
 
 with Adaview.Version; use Adaview.Version;
-with GNAT.OS_Lib;
+with System.OS_Lib;   use System.OS_Lib;
 
 package body Adaview.Config is
 
@@ -55,10 +56,16 @@ package body Adaview.Config is
    show_version  : aliased Gboolean;
    show_help     : aliased Gboolean;
    show_help_all : aliased Gboolean;
+   cmd_gzip      : aliased String := "gzip";
+   cmd_bzip2     : aliased String := "bzip2";
+   cmd_xz        : aliased String := "xz";
+
+   type compress_t is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
 
    type gboolean_access is access all Gboolean;
    package ACL renames Ada.Characters.Latin_1;
 
+   ---------------------------------------------------------------------------
    function To_Address (C : gboolean_access) return System.Address is
       function Convert is new Ada.Unchecked_Conversion
         (gboolean_access,
@@ -67,6 +74,7 @@ package body Adaview.Config is
       return Glib.To_Address (Convert (C));
    end To_Address;
 
+   ---------------------------------------------------------------------------
    procedure print_short_version is
    begin
       Put (prgname & " " & Adaview.Version.Text & " - ");
@@ -81,6 +89,7 @@ package body Adaview.Config is
       Put_Line (get_license);
    end print_version;
 
+   ---------------------------------------------------------------------------
    procedure usage (opts_ctx : in Goption_Context; Main_Help : Boolean) is
    begin
       print_short_version;
@@ -100,9 +109,10 @@ package body Adaview.Config is
          end loop;
          Put_Line (help_msg (idx + 1 .. help_msg'Last));
       end;
-      GNAT.OS_Lib.OS_Exit (0);
+      System.OS_Lib.OS_Exit (0);
    end usage;
 
+   ---------------------------------------------------------------------------
    procedure process_options is
       error : aliased GError;
       ret   : Boolean;
@@ -138,7 +148,7 @@ package body Adaview.Config is
       end if;
       if show_version /= 0 then
          print_version;
-         GNAT.OS_Lib.OS_Exit (0);
+         System.OS_Lib.OS_Exit (0);
       end if;
       if show_help /= 0 then
          usage (opts_ctx, True);
@@ -149,22 +159,105 @@ package body Adaview.Config is
       end if;
    end process_options;
 
-   function get_file_md5 (file_name : Bounded_String) return String is
+   ---------------------------------------------------------------------------
+   procedure decompress_file
+     (file_name : in     Bounded_String;
+      temp_name : in out Bounded_String;
+      comp_type : in     compress_t) is
+      template_name : String := ("/tmp/adaviewXXXXXX" & ACL.NUL);
+      cmd_ptr       : System.OS_Lib.String_Access;
+      arguments     : System.OS_Lib.Argument_List (1 .. 2);
+      fd            : System.OS_Lib.File_Descriptor;
+      ret           : Integer;
+      function c_mkstemp
+        (filename : System.Address) return System.OS_Lib.File_Descriptor;
+      pragma Import (C, c_mkstemp, "mkstemp");
+      function sys (Arg : Char_Array) return Integer;
+      pragma Import(C, Sys, "system");
+   begin
+      fd := c_mkstemp (template_name'Address);
+      if fd = -1 then
+         raise No_temp_file;
+      end if;
+      Close (fd);
+
+      Put_Line ("got temp file " & template_name);
+      temp_name := To_Bounded_String (template_name);
+      case comp_type is
+         when COMPRESS | GZIP =>
+            cmd_ptr := cmd_gzip'Access;
+         when BZIP2 =>
+            cmd_ptr := cmd_bzip2'Access;
+         when XZ =>
+            cmd_ptr := cmd_xz'Access;
+         when others =>
+            null;
+      end case;
+      ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name) & " > " & template_name));
+      Put_Line ("decompress result: " & Integer'Image (ret));
+   end decompress_file;
+
+   ---------------------------------------------------------------------------
+   procedure get_file_md5
+     (file_name : in     Bounded_String;
+      temp_name : in out Bounded_String;
+      checksum  :    out String) is
       use Ada.Streams;
+
       in_file         : Stream_IO.File_Type;
-      in_stream       : Stream_IO.Stream_Access;
       data_block_size : constant := 8192;
-      data            : byte_string_t (1 .. data_block_size);
-      last            : Natural;
+
+      data : byte_string_t (1 .. data_block_size);
+      -- so that we could use it for compression magic header detection
+
+      last           : Natural;
+      compress_magic : constant byte_string_t := (16#1F#, 16#9d#);
+      gzip_magic     : constant byte_string_t := (16#1F#, 16#8B#);
+
+      bzip2_magic : constant byte_string_t := (16#42#, 16#5a#, 16#68#);
+      --"BZh"
+
+      xz_magic : constant byte_string_t :=
+        (16#FD#, 16#37#, 16#7a#, 16#58#, 16#5A#, 16#00#);
+      -- {0xFD, '7', 'z', 'X', 'Z', 0x00}
+      comp_type : compress_t := NO_COMPRESS;
+
       subtype SEA_T is Stream_Element_Array (1 .. data_block_size);
       package SEA_Addr is new System.Address_To_Access_Conversions (SEA_T);
-      into : SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (data'Address);
-      got  : Stream_Element_Offset;
-
-      md5_ctx : GNAT.MD5.Context := GNAT.MD5.Initial_Context;
+      into    : SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (data'Address);
+      got     : Stream_Element_Offset;
+      md5_ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
    begin
+      -- work around an optimization problem for data
       Stream_IO.Open (in_file, Stream_IO.In_File, To_String (file_name));
-      in_stream := Stream_IO.Stream (in_file);
+      -- read in sample first
+      Stream_IO.Read (in_file, into.all, got);
+
+      -- test for compression magic headers
+      declare
+         in_data : byte_string_t (1 .. Integer (got));
+         for in_data'Address use into.all'Address;
+      begin
+         if in_data (1 .. compress_magic'Last) = compress_magic then
+            comp_type := COMPRESS;
+         elsif in_data (1 .. gzip_magic'Last) = gzip_magic then
+            comp_type := GZIP;
+         elsif in_data (1 .. bzip2_magic'Last) = bzip2_magic then
+            comp_type := BZIP2;
+         elsif in_data (1 .. xz_magic'Last) = xz_magic then
+            comp_type := XZ;
+         end if;
+      end;
+      Put_Line ("compression method " & compress_t'Image (comp_type));
+      if comp_type = NO_COMPRESS then
+         last := Natural (got);
+         -- Update MD5
+         GNAT.MD5.Update (md5_ctx, into.all (1 .. got));
+      else
+         Stream_IO.Close (in_file);
+         decompress_file (file_name, temp_name, comp_type);
+         Stream_IO.Open (in_file, Stream_IO.In_File, To_String (temp_name));
+      end if;
 
       while not Ada.Streams.Stream_IO.End_Of_File (in_file) loop
          Stream_IO.Read (in_file, into.all, got);
@@ -173,9 +266,10 @@ package body Adaview.Config is
          GNAT.MD5.Update (md5_ctx, into.all (1 .. got));
       end loop;
       Stream_IO.Close (in_file);
-      return GNAT.MD5.Digest (md5_ctx);
+      checksum := GNAT.MD5.Digest (md5_ctx);
    end get_file_md5;
 
+   ---------------------------------------------------------------------------
    procedure load_config (ctx : in out context_t) is
       home             : path_string_t;
       data_home        : path_string_t;
@@ -206,6 +300,7 @@ package body Adaview.Config is
       Put_Line ("Got" & Integer'Image (ctx.total_doc) & " entries in history");
    end load_config;
 
+   ---------------------------------------------------------------------------
    procedure save_config (ctx : in context_t) is
    begin
       if ctx.history_changed then
@@ -213,10 +308,11 @@ package body Adaview.Config is
       end if;
    end save_config;
 
+   ---------------------------------------------------------------------------
    procedure load_history (ctx : in out context_t) is
       in_file   : File_Type;
       tokens    : Slice_Set;
-      separator : constant String := " ";
+      separator : constant String := "|";
       data_line : Unbounded_String;
    begin
       Put_Line ("open config file:" & To_String (ctx.data_file));
@@ -252,6 +348,8 @@ package body Adaview.Config is
                when 1 =>
                   ctx.history (ctx.total_doc).checksum := Slice (tokens, i);
                when 2 =>
+                  Put_Line
+                    ("Slice " & Positive'Image (Slice (tokens, i)'First));
                   ctx.history (ctx.total_doc).name :=
                     To_Bounded_String (Slice (tokens, i));
                when 3 =>
@@ -282,16 +380,18 @@ package body Adaview.Config is
          raise;
    end load_history;
 
+   ---------------------------------------------------------------------------
    procedure save_one_entry (out_file : in File_Type; doc : in doc_t) is
    begin
       Put (out_file, doc.checksum);
-      Put (out_file, " " & To_String (doc.name));
-      Put (out_file, Natural'Image (doc.cur_page));
-      Put (out_file, Natural'Image (doc.total_page));
-      Put (out_file, " " & doc_class_t'Image (doc.class));
-      New_line (out_file);
+      Put (out_file, "|" & To_String (doc.name));
+      Put (out_file, "|" & Natural'Image (doc.cur_page));
+      Put (out_file, "|" & Natural'Image (doc.total_page));
+      Put (out_file, "|" & doc_class_t'Image (doc.class));
+      New_Line (out_file);
    end save_one_entry;
 
+   ---------------------------------------------------------------------------
    procedure save_history (ctx : in context_t) is
       out_file : File_Type;
    begin

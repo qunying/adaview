@@ -68,8 +68,9 @@ begin
       doc_ctx.current_doc.name := BString.To_Bounded_String ((Argument (1)));
       Put_Line
         ("Got document: " & BString.To_String (doc_ctx.current_doc.name));
-      doc_ctx.current_doc.checksum :=
-        Adaview.Config.get_file_md5 (doc_ctx.current_doc.name);
+      Adaview.Config.get_file_md5 (doc_ctx.current_doc.name,
+                                   doc_ctx.current_doc.temp_name,
+                                   doc_ctx.current_doc.checksum);
       Put_Line ("md5: " & doc_ctx.current_doc.checksum);
       if (Argument_Count = 2) then
          doc_ctx.current_doc.cur_page := Integer'Value (Argument (2));

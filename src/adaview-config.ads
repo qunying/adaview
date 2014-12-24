@@ -22,6 +22,7 @@
 -- Define adaview's configuration and command line arguments
 
 with Ada.Strings.Bounded;
+
 with GNAT.MD5;
 
 package Adaview.Config is
@@ -31,13 +32,15 @@ package Adaview.Config is
    max_recent_document_number : constant := 10;
    -- store only 10 recent documents, may change to configuratble
    Parameter_Error : exception;
+   No_temp_file : exception;
 
    type byte_t is mod 2**8;
-   type byte_string_t is array (Natural range <>) of byte_t;
+   type byte_string_t is array (Positive range <>) of byte_t;
 
    package BString is new Ada.Strings.Bounded.Generic_Bounded_Length
      (Max => max_file_path_length);
    subtype path_string_t is BString.Bounded_String;
+   use BString;
 
    type doc_class_t is (UNKNOWN, PS, PDF);
 
@@ -65,8 +68,12 @@ package Adaview.Config is
    -- Parse command line arguments.
    -- Raise exception Parameter_Error when arugment parsing failed
 
-   function get_file_md5 (file_name : BString.Bounded_String) return String;
+   procedure get_file_md5 (file_name : in Bounded_String;
+                           temp_name : in out Bounded_String;
+                           checksum  : out String);
    -- Calculate the MD5 sum of a given file
+   -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
+   -- calculate the MD5 sum against the uncompressed file
 
    procedure load_config (ctx : in out context_t);
    -- load configuration and recent histories

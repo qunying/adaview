@@ -27,21 +27,25 @@
 
 package body GS.API is
 
+   ---------------------------------------------------------------------------
    function get_product (pr : revision_t) return String is
    begin
       return Interfaces.C.Strings.Value (pr.product);
    end get_product;
 
+   ---------------------------------------------------------------------------
    function get_copyright (pr : revision_t) return String is
    begin
       return Interfaces.C.Strings.Value (pr.copyright);
    end get_copyright;
 
+   ---------------------------------------------------------------------------
    function get_revision_num (pr : revision_t) return Long_Integer is
    begin
       return Long_Integer (pr.revision);
    end get_revision_num;
 
+   ---------------------------------------------------------------------------
    function get_revision_date (pr : revision_t) return Long_Integer is
    begin
       return Long_Integer (pr.revisiondate);

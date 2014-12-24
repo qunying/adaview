@@ -24,16 +24,19 @@ package body Adaview.Version is
 
    LF : Character := Ada.Characters.Latin_1.LF;
 
+   ---------------------------------------------------------------------------
    function get_description return  Glib.UTF8_String is
    begin
       return -"A PostScript/PDF viewer.";
    end get_description;
 
+   ---------------------------------------------------------------------------
    function get_copyright return  Glib.UTF8_String is
    begin
       return -"Copyright (C) 2014 Zhu Qun-Ying";
    end get_copyright;
 
+   ---------------------------------------------------------------------------
    function get_license return  Glib.UTF8_String is
    begin
       return -(

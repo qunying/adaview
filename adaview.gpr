@@ -22,7 +22,15 @@ project Adaview is
    end Linker;
 
    package Pretty_Printer is
-      for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
+
+      case Library_Type is
+
+         when "static" =>
+            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
+
+         when "relocatable" =>
+            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0", "-nM", "-N");
+      end case;
    end Pretty_Printer;
 
    package Builder is
