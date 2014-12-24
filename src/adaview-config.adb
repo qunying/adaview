@@ -122,7 +122,7 @@ package body Adaview.Config is
 
       opts (3).Long_Name   := New_String ("help-all");
       opts (3).Short_Name  := Gchar (ACL.NUL);
-      opts (3).Description := New_String (-"Show help options");
+      opts (3).Description := New_String (-"Show all help options");
       opts (3).Arg         := G_Option_Arg_None;
       opts (3).Arg_Data    := To_Address (show_help_all'Access);
 
