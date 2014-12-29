@@ -43,7 +43,7 @@ procedure Adaview_main is
    instance    : aliased instance_t;
    ret         : code_t;
    doc_ctx     : Adaview.Config.context_t;
-   matched_idx : Natural;
+   matched_idx : Natural := 0;
 
    package BString renames Adaview.Config.BString;
 
@@ -96,6 +96,11 @@ begin
    else
       Put_Line ("No more argument");
    end if;
+
+   if matched_idx = 0 then
+      doc_ctx.history_changed := True;
+   end if;
+
 
    if revision (gs_version'Access, gs_version'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");

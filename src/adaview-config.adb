@@ -194,15 +194,10 @@ package body Adaview.Config is
          when others =>
             null;
       end case;
-      ret :=
-        sys
-          (To_C
-             (cmd_ptr.all &
-              " -dc " &
-              To_String (file_name) &
-              " > " &
-              template_name));
-
+      --!pp off
+      ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name)
+                        & " > " & template_name));
+      --!pp oN
       Put_Line ("decompress result: " & Integer'Image (ret));
    end decompress_file;
 
@@ -242,21 +237,23 @@ package body Adaview.Config is
       -- read in sample first
       Stream_IO.Read (in_file, into.all, got);
 
+      if Integer (got) >= xz_magic'Last then
       -- test for compression magic headers
-      declare
-         in_data : byte_string_t (1 .. Integer (got));
-         for in_data'Address use into.all'Address;
-      begin
-         if in_data (1 .. compress_magic'Last) = compress_magic then
-            comp_type := COMPRESS;
-         elsif in_data (1 .. gzip_magic'Last) = gzip_magic then
-            comp_type := GZIP;
-         elsif in_data (1 .. bzip2_magic'Last) = bzip2_magic then
-            comp_type := BZIP2;
-         elsif in_data (1 .. xz_magic'Last) = xz_magic then
-            comp_type := XZ;
-         end if;
-      end;
+         declare
+            in_data : byte_string_t (1 .. Integer (got));
+            for in_data'Address use into.all'Address;
+         begin
+            if in_data (1 .. compress_magic'Last) = compress_magic then
+               comp_type := COMPRESS;
+            elsif in_data (1 .. gzip_magic'Last) = gzip_magic then
+               comp_type := GZIP;
+            elsif in_data (1 .. bzip2_magic'Last) = bzip2_magic then
+               comp_type := BZIP2;
+            elsif in_data (1 .. xz_magic'Last) = xz_magic then
+               comp_type := XZ;
+            end if;
+         end;
+      end if;
       Put_Line ("compression method " & compress_t'Image (comp_type));
       if comp_type = NO_COMPRESS then
          last := Natural (got);
@@ -266,6 +263,7 @@ package body Adaview.Config is
          Stream_IO.Close (in_file);
          decompress_file (file_name, temp_name, comp_type);
          Stream_IO.Open (in_file, Stream_IO.In_File, To_String (temp_name));
+         Stream_IO.Read (in_file, into.all, got);
       end if;
 
       while not Ada.Streams.Stream_IO.End_Of_File (in_file) loop
@@ -324,7 +322,7 @@ package body Adaview.Config is
       separator : constant String := "|";
       data_line : Unbounded_String;
    begin
-      Put_Line ("open config file:" & To_String (ctx.data_file));
+      Put_Line ("open history file:" & To_String (ctx.data_file));
       Open (in_file, Ada.Text_IO.In_File, To_String (ctx.data_file));
 
       read_line :
@@ -405,7 +403,7 @@ package body Adaview.Config is
       out_file : File_Type;
    begin
       Put_Line ("save history to " & To_String (ctx.data_file));
-      Open (out_file, Ada.Text_IO.Out_File, To_String (ctx.data_file));
+      Create (out_file, Ada.Text_IO.Out_File, To_String (ctx.data_file));
       if ctx.current_doc.checksum (1) /= ' ' then
          save_one_entry (out_file, ctx.current_doc);
       end if;
