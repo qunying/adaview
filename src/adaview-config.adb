@@ -199,7 +199,7 @@ package body Adaview.Config is
       --!pp off
       ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name)
                         & " > " & template_name));
-      --!pp oN
+      --!pp on
       Put_Line ("decompress result: " & Integer'Image (ret));
       if Size (template_name (1 .. template_name'Last - 1)) = 0 then
          raise Invalid_file
