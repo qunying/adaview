@@ -33,6 +33,7 @@ package Adaview.Config is
    -- store only 10 recent documents, may change to configuratble
    Parameter_Error : exception;
    No_temp_file : exception;
+   Invalid_file : exception;
 
    type byte_t is mod 2**8;
    type byte_string_t is array (Positive range <>) of byte_t;

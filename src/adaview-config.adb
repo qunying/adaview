@@ -183,7 +183,9 @@ package body Adaview.Config is
       Close (fd);
 
       Put_Line ("got temp file " & template_name);
-      temp_name := To_Bounded_String (template_name);
+      -- remove the trailling NUL character
+      temp_name :=
+        To_Bounded_String (template_name (1 .. template_name'Last - 1));
       case comp_type is
          when COMPRESS | GZIP =>
             cmd_ptr := cmd_gzip'Access;
@@ -199,6 +201,10 @@ package body Adaview.Config is
                         & " > " & template_name));
       --!pp oN
       Put_Line ("decompress result: " & Integer'Image (ret));
+      if Size (template_name (1 .. template_name'Last - 1)) = 0 then
+         raise Invalid_file
+           with "file " & To_String (file_name) & " is invalid.";
+      end if;
    end decompress_file;
 
    ---------------------------------------------------------------------------
@@ -237,7 +243,7 @@ package body Adaview.Config is
       -- read in sample first
       Stream_IO.Read (in_file, into.all, got);
 
-      if Integer (got) >= xz_magic'Last then
+      if Integer (got) > xz_magic'Last then
       -- test for compression magic headers
          declare
             in_data : byte_string_t (1 .. Integer (got));

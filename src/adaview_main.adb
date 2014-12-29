@@ -23,6 +23,7 @@ with Ada.Text_IO;              use Ada.Text_IO;
 with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
 with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
 with Ada.Command_Line;         use Ada.Command_Line;
+with Ada.Directories;          use Ada.Directories;
 
 with Ada.Strings.Bounded;
 with Interfaces.C; use Interfaces.C;
@@ -68,10 +69,13 @@ begin
       doc_ctx.current_doc.name := BString.To_Bounded_String ((Argument (1)));
       Put_Line
         ("Got document: " & BString.To_String (doc_ctx.current_doc.name));
-      Adaview.Config.get_file_md5 (doc_ctx.current_doc.name,
-                                   doc_ctx.current_doc.temp_name,
-                                   doc_ctx.current_doc.checksum);
+      doc_ctx.current_doc.temp_name := doc_ctx.current_doc.name;
+      Adaview.Config.get_file_md5
+        (doc_ctx.current_doc.name,
+         doc_ctx.current_doc.temp_name,
+         doc_ctx.current_doc.checksum);
       Put_Line ("md5: " & doc_ctx.current_doc.checksum);
+
       if (Argument_Count = 2) then
          doc_ctx.current_doc.cur_page := Integer'Value (Argument (2));
       end if;
@@ -84,8 +88,14 @@ begin
             if BString.To_String (doc_ctx.current_doc.name) /=
               BString.To_String (doc_ctx.history (i).name)
             then
-               doc_ctx.history (i).name := doc_ctx.current_doc.name;
-               doc_ctx.history_changed  := True;
+               doc_ctx.history (i).name  := doc_ctx.current_doc.name;
+               doc_ctx.current_doc.class := doc_ctx.history (i).class;
+               if doc_ctx.current_doc.cur_page = 0 then
+                  doc_ctx.current_doc.cur_page := doc_ctx.history (i).cur_page;
+               end if;
+               doc_ctx.current_doc.total_page :=
+                 doc_ctx.history (i).total_page;
+               doc_ctx.history_changed := True;
             end if;
             if i /= 1 then
                doc_ctx.history_changed := True;
@@ -100,7 +110,6 @@ begin
    if matched_idx = 0 then
       doc_ctx.history_changed := True;
    end if;
-
 
    if revision (gs_version'Access, gs_version'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
@@ -129,4 +138,9 @@ begin
    Put_Line ("delete instance");
    delete_instance (instance);
    Adaview.Config.save_config (doc_ctx);
+   if BString.To_String (doc_ctx.current_doc.name) /=
+     BString.To_String (doc_ctx.current_doc.temp_name)
+   then
+      Delete_File (BString.To_String (doc_ctx.current_doc.temp_name));
+   end if;
 end Adaview_main;
