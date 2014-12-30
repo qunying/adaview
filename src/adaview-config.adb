@@ -154,6 +154,12 @@ package body Adaview.Config is
       if show_help_all /= 0 then
          usage (opts_ctx, False);
       end if;
+      -- free the opts and context
+      for i in opts'Range loop
+         Free (opts(i).Long_Name);
+         Free (opts(i).Description);
+      end loop;
+      Free (opts_ctx);
    end process_options;
 
    ---------------------------------------------------------------------------
