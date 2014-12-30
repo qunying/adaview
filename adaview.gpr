@@ -1,4 +1,5 @@
 with "gtkada";
+with "florist";
 
 project Adaview is
 

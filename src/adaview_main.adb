@@ -29,6 +29,8 @@ with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
 
+with POSIX.Process_Environment; use POSIX.Process_Environment;
+
 with GS.API;    use GS.API;
 with GS.Errors; use GS.Errors;
 
@@ -46,7 +48,6 @@ procedure Adaview_main is
    doc_ctx     : Adaview.Config.context_t;
    matched_idx : Natural := 0;
 begin
-
    Setlocale;
    Text_Domain (Adaview.Version.prgname);
    Bind_Text_Domain (Adaview.Version.prgname, Adaview.Locale.Path);
@@ -63,7 +64,16 @@ begin
    Adaview.Config.load_config (doc_ctx);
 
    if Argument_Count >= 1 then
-      doc_ctx.cur_doc.name := To_Unbounded_String ((Argument (1)));
+      if Argument(1)(1) = '/' then
+         doc_ctx.cur_doc.name := To_Unbounded_String (Argument (1));
+      else
+         declare
+           cwd : String := POSIX.To_String (Get_Working_Directory);
+         begin
+            doc_ctx.cur_doc.name := To_Unbounded_String (cwd & "/" & Argument (1));
+         end;
+      end if;
+
       Put_Line ("Got document: " & To_String (doc_ctx.cur_doc.name));
       doc_ctx.cur_doc.temp_name := doc_ctx.cur_doc.name;
       Adaview.Config.get_file_md5
