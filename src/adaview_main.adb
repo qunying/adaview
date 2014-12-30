@@ -24,8 +24,8 @@ with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
 with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
 with Ada.Command_Line;         use Ada.Command_Line;
 with Ada.Directories;          use Ada.Directories;
+with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
 
-with Ada.Strings.Bounded;
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
 
@@ -45,14 +45,11 @@ procedure Adaview_main is
    ret         : code_t;
    doc_ctx     : Adaview.Config.context_t;
    matched_idx : Natural := 0;
-
-   package BString renames Adaview.Config.BString;
-
 begin
 
    Setlocale;
    Text_Domain (Adaview.Version.prgname);
-   Bind_Text_Domain (Adaview.Version.prgname, Adaview.Locale.path);
+   Bind_Text_Domain (Adaview.Version.prgname, Adaview.Locale.Path);
 
    Adaview.Config.process_options;
 
@@ -66,9 +63,8 @@ begin
    Adaview.Config.load_config (doc_ctx);
 
    if Argument_Count >= 1 then
-      doc_ctx.current_doc.name := BString.To_Bounded_String ((Argument (1)));
-      Put_Line
-        ("Got document: " & BString.To_String (doc_ctx.current_doc.name));
+      doc_ctx.current_doc.name := To_Unbounded_String ((Argument (1)));
+      Put_Line ("Got document: " & To_String (doc_ctx.current_doc.name));
       doc_ctx.current_doc.temp_name := doc_ctx.current_doc.name;
       Adaview.Config.get_file_md5
         (doc_ctx.current_doc.name,
@@ -85,9 +81,7 @@ begin
             -- we found an entry
             Put_Line ("we got an entry in the history.");
             matched_idx := i;
-            if BString.To_String (doc_ctx.current_doc.name) /=
-              BString.To_String (doc_ctx.history (i).name)
-            then
+            if doc_ctx.current_doc.name /= doc_ctx.history (i).name then
                doc_ctx.history (i).name  := doc_ctx.current_doc.name;
                doc_ctx.current_doc.class := doc_ctx.history (i).class;
                if doc_ctx.current_doc.cur_page = 0 then
@@ -138,9 +132,7 @@ begin
    Put_Line ("delete instance");
    delete_instance (instance);
    Adaview.Config.save_config (doc_ctx);
-   if BString.To_String (doc_ctx.current_doc.name) /=
-     BString.To_String (doc_ctx.current_doc.temp_name)
-   then
-      Delete_File (BString.To_String (doc_ctx.current_doc.temp_name));
+   if doc_ctx.current_doc.name /= doc_ctx.current_doc.temp_name then
+      Delete_File (To_String (doc_ctx.current_doc.temp_name));
    end if;
 end Adaview_main;

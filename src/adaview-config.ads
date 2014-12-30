@@ -21,11 +21,13 @@
 
 -- Define adaview's configuration and command line arguments
 
-with Ada.Strings.Bounded;
+with Ada.Strings.Unbounded;
 
 with GNAT.MD5;
 
 package Adaview.Config is
+
+   use Ada.Strings.Unbounded;
 
    md5_length                 : constant := 32;
    max_file_path_length       : constant := 512;
@@ -37,17 +39,13 @@ package Adaview.Config is
 
    type byte_t is mod 2**8;
    type byte_string_t is array (Positive range <>) of byte_t;
-
-   package BString is new Ada.Strings.Bounded.Generic_Bounded_Length
-     (Max => max_file_path_length);
-   subtype path_string_t is BString.Bounded_String;
-   use BString;
+   subtype path_string_t is Unbounded_String;
 
    type doc_class_t is (UNKNOWN, PS, PDF);
 
    type doc_t is record
-      name       : path_string_t := To_Bounded_String("");
-      temp_name  : path_string_t := To_Bounded_String("");
+      name       : path_string_t := To_Unbounded_String ("");
+      temp_name  : path_string_t := To_Unbounded_String("");
       checksum   : String (1 .. md5_length);
       class      : doc_class_t := UNKNOWN;
       cur_page   : Natural := 0;
@@ -69,8 +67,8 @@ package Adaview.Config is
    -- Parse command line arguments.
    -- Raise exception Parameter_Error when arugment parsing failed
 
-   procedure get_file_md5 (file_name : in Bounded_String;
-                           temp_name : in out Bounded_String;
+   procedure get_file_md5 (file_name : in Unbounded_String;
+                           temp_name : in out Unbounded_String;
                            checksum  : out String);
    -- Calculate the MD5 sum of a given file
    -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and

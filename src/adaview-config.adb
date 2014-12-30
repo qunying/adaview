@@ -48,8 +48,6 @@ with System.OS_Lib;   use System.OS_Lib;
 
 package body Adaview.Config is
 
-   use BString;
-
    opts_ctx      : Goption_Context;
    opts          : GOption_Entry_Array (1 .. 4);
    gtk_opts_grp  : GOption_Group;
@@ -161,8 +159,8 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure decompress_file
-     (file_name : in     Bounded_String;
-      temp_name : in out Bounded_String;
+     (file_name : in     Unbounded_String;
+      temp_name : in out Unbounded_String;
       comp_type : in     compress_t) is
       base          : String := Base_Name (To_String (file_name));
       template_name : String := ("/tmp/adaview-" & base & ".XXXXXX" & ACL.NUL);
@@ -185,7 +183,7 @@ package body Adaview.Config is
       Put_Line ("got temp file " & template_name);
       -- remove the trailling NUL character
       temp_name :=
-        To_Bounded_String (template_name (1 .. template_name'Last - 1));
+        To_Unbounded_String (template_name (1 .. template_name'Last - 1));
       case comp_type is
          when COMPRESS | GZIP =>
             cmd_ptr := cmd_gzip'Access;
@@ -209,8 +207,8 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure get_file_md5
-     (file_name : in     Bounded_String;
-      temp_name : in out Bounded_String;
+     (file_name : in     Unbounded_String;
+      temp_name : in out Unbounded_String;
       checksum  :    out String) is
       use Ada.Streams;
 
@@ -238,27 +236,21 @@ package body Adaview.Config is
       got     : Stream_Element_Offset;
       md5_ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
    begin
-      -- work around an optimization problem for data
       Stream_IO.Open (in_file, Stream_IO.In_File, To_String (file_name));
       -- read in sample first
       Stream_IO.Read (in_file, into.all, got);
 
-      if Integer (got) > xz_magic'Last then
       -- test for compression magic headers
-         declare
-            in_data : byte_string_t (1 .. Integer (got));
-            for in_data'Address use into.all'Address;
-         begin
-            if in_data (1 .. compress_magic'Last) = compress_magic then
-               comp_type := COMPRESS;
-            elsif in_data (1 .. gzip_magic'Last) = gzip_magic then
-               comp_type := GZIP;
-            elsif in_data (1 .. bzip2_magic'Last) = bzip2_magic then
-               comp_type := BZIP2;
-            elsif in_data (1 .. xz_magic'Last) = xz_magic then
-               comp_type := XZ;
-            end if;
-         end;
+      if Integer (got) > xz_magic'Last then
+         if data (1 .. compress_magic'Last) = compress_magic then
+            comp_type := COMPRESS;
+         elsif data (1 .. gzip_magic'Last) = gzip_magic then
+            comp_type := GZIP;
+         elsif data (1 .. bzip2_magic'Last) = bzip2_magic then
+            comp_type := BZIP2;
+         elsif data (1 .. xz_magic'Last) = xz_magic then
+            comp_type := XZ;
+         end if;
       end if;
       Put_Line ("compression method " & compress_t'Image (comp_type));
       if comp_type = NO_COMPRESS then
@@ -284,31 +276,27 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure load_config (ctx : in out context_t) is
-      home             : path_string_t;
-      data_home        : path_string_t;
-      config_home      : path_string_t;
+      data_path        : path_string_t;
+      conf_path        : path_string_t;
       recent_file_name : path_string_t;
       config_file_name : path_string_t;
    begin
       -- form data and config home, follow the xdg guideline
-      home := To_Bounded_String (Ada.Environment_Variables.Value ("HOME"));
-      data_home :=
-        To_Bounded_String
-          (Value ("XDG_DATA_HOME", To_String (home) & "/.local/share") &
-           "/" &
-           prgname);
-      config_home :=
-        To_Bounded_String
-          (Value ("XDG_CONFIG_HOME", To_String (home) & "/.config") &
-           "/" &
-           prgname);
+      declare
+         home      : String := Value ("HOME");
+         data_home : String := Value ("XDG_DATA_HOME", home & "/.local/share");
+         conf_home : String := Value ("XDG_CONFIG_HOME", home & "/.config");
+      begin
+         data_path := To_Unbounded_String (data_home & "/" & prgname);
+         conf_path := To_Unbounded_String (conf_home & "/" & prgname);
+      end;
       -- make directories
-      Create_Path (To_String (data_home));
-      Create_Path (To_String (config_home));
+      Create_Path (To_String (data_path));
+      Create_Path (To_String (conf_path));
 
       -- ok, try forming data and config file path
-      ctx.data_file   := data_home & "/history";
-      ctx.config_file := config_home & "/config.txt";
+      ctx.data_file   := data_path & "/history";
+      ctx.config_file := conf_path & "/config.txt";
       load_history (ctx);
       Put_Line ("Got" & Integer'Image (ctx.total_doc) & " entries in history");
    end load_config;
@@ -361,10 +349,8 @@ package body Adaview.Config is
                when 1 =>
                   ctx.history (ctx.total_doc).checksum := Slice (tokens, i);
                when 2 =>
-                  Put_Line
-                    ("Slice " & Positive'Image (Slice (tokens, i)'First));
                   ctx.history (ctx.total_doc).name :=
-                    To_Bounded_String (Slice (tokens, i));
+                    To_Unbounded_String (Slice (tokens, i));
                when 3 =>
                   ctx.history (ctx.total_doc).cur_page :=
                     Integer'Value (Slice (tokens, i));
