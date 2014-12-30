@@ -168,27 +168,27 @@ package body Adaview.Config is
       temp_name : in out Unbounded_String;
       comp_type : in     compress_t) is
       base          : String := Base_Name (To_String (file_name));
-      template_name : String := ("/tmp/adaview-" & base & ".XXXXXX" & ACL.NUL);
+      template_name : char_array := To_C ("/tmp/adaview-" & base & ".XXXXXX");
       cmd_ptr       : System.OS_Lib.String_Access;
-      arguments     : System.OS_Lib.Argument_List (1 .. 2);
-      fd            : System.OS_Lib.File_Descriptor;
+      arguments     : Argument_List (1 .. 2);
+      fd            : File_Descriptor;
       ret           : Integer;
-      function c_mkstemp
-        (filename : System.Address) return System.OS_Lib.File_Descriptor;
+      function c_mkstemp (filename : char_array) return File_Descriptor;
       pragma Import (C, c_mkstemp, "mkstemp");
+
       function sys (Arg : char_array) return Integer;
       pragma Import (C, sys, "system");
    begin
-      fd := c_mkstemp (template_name'Address);
+      fd := c_mkstemp (template_name);
       if fd = -1 then
          raise No_temp_file;
       end if;
       Close (fd);
 
-      Put_Line ("got temp file " & template_name);
+      Put_Line ("got temp file " & To_Ada (template_name));
       -- remove the trailling NUL character
       temp_name :=
-        To_Unbounded_String (template_name (1 .. template_name'Last - 1));
+        To_Unbounded_String (To_Ada(template_name));
       case comp_type is
          when COMPRESS | GZIP =>
             cmd_ptr := cmd_gzip'Access;
@@ -201,10 +201,11 @@ package body Adaview.Config is
       end case;
       --!pp off
       ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name)
-                        & " > " & template_name));
+                        & " > " & To_String (temp_name)));
       --!pp on
       Put_Line ("decompress result: " & Integer'Image (ret));
-      if Size (template_name (1 .. template_name'Last - 1)) = 0 then
+      -- decompress file have zero length, consider failed.
+      if Size (To_String(temp_name)) = 0 then
          raise Invalid_file
            with "file " & To_String (file_name) & " is invalid.";
       end if;
