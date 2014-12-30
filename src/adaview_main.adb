@@ -110,7 +110,7 @@ begin
       Put_Line ("No more argument");
    end if;
 
-   if matched_idx = 0 then
+   if matched_idx = 0 and Argument_Count > 0 then
       doc_ctx.history_changed := True;
    end if;
 
