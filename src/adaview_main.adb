@@ -63,33 +63,32 @@ begin
    Adaview.Config.load_config (doc_ctx);
 
    if Argument_Count >= 1 then
-      doc_ctx.current_doc.name := To_Unbounded_String ((Argument (1)));
-      Put_Line ("Got document: " & To_String (doc_ctx.current_doc.name));
-      doc_ctx.current_doc.temp_name := doc_ctx.current_doc.name;
+      doc_ctx.cur_doc.name := To_Unbounded_String ((Argument (1)));
+      Put_Line ("Got document: " & To_String (doc_ctx.cur_doc.name));
+      doc_ctx.cur_doc.temp_name := doc_ctx.cur_doc.name;
       Adaview.Config.get_file_md5
-        (doc_ctx.current_doc.name,
-         doc_ctx.current_doc.temp_name,
-         doc_ctx.current_doc.checksum);
-      Put_Line ("md5: " & doc_ctx.current_doc.checksum);
+        (doc_ctx.cur_doc.name,
+         doc_ctx.cur_doc.temp_name,
+         doc_ctx.cur_doc.checksum);
+      Put_Line ("md5: " & doc_ctx.cur_doc.checksum);
 
       if (Argument_Count = 2) then
-         doc_ctx.current_doc.cur_page := Integer'Value (Argument (2));
+         doc_ctx.cur_doc.cur_page := Integer'Value (Argument (2));
       end if;
       -- try to see if we have the file in the history
       for i in 1 .. doc_ctx.total_doc loop
-         if doc_ctx.current_doc.checksum = doc_ctx.history (i).checksum then
+         if doc_ctx.cur_doc.checksum = doc_ctx.history (i).checksum then
             -- we found an entry
             Put_Line ("we got an entry in the history.");
             matched_idx := i;
-            if doc_ctx.current_doc.name /= doc_ctx.history (i).name then
-               doc_ctx.history (i).name  := doc_ctx.current_doc.name;
-               doc_ctx.current_doc.class := doc_ctx.history (i).class;
-               if doc_ctx.current_doc.cur_page = 0 then
-                  doc_ctx.current_doc.cur_page := doc_ctx.history (i).cur_page;
+            if doc_ctx.cur_doc.name /= doc_ctx.history (i).name then
+               doc_ctx.history (i).name := doc_ctx.cur_doc.name;
+               doc_ctx.cur_doc.class    := doc_ctx.history (i).class;
+               if doc_ctx.cur_doc.cur_page = 0 then
+                  doc_ctx.cur_doc.cur_page := doc_ctx.history (i).cur_page;
                end if;
-               doc_ctx.current_doc.total_page :=
-                 doc_ctx.history (i).total_page;
-               doc_ctx.history_changed := True;
+               doc_ctx.cur_doc.total_page := doc_ctx.history (i).total_page;
+               doc_ctx.history_changed    := True;
             end if;
             if i /= 1 then
                doc_ctx.history_changed := True;
@@ -132,7 +131,7 @@ begin
    Put_Line ("delete instance");
    delete_instance (instance);
    Adaview.Config.save_config (doc_ctx);
-   if doc_ctx.current_doc.name /= doc_ctx.current_doc.temp_name then
-      Delete_File (To_String (doc_ctx.current_doc.temp_name));
+   if doc_ctx.cur_doc.name /= doc_ctx.cur_doc.temp_name then
+      Delete_File (To_String (doc_ctx.cur_doc.temp_name));
    end if;
 end Adaview_main;

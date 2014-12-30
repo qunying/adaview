@@ -129,7 +129,6 @@ package body Adaview.Config is
       opts (2).Arg_Data    := To_Address (show_help'Access);
 
       opts (3).Long_Name   := New_String ("help-all");
-      opts (3).Short_Name  := Gchar (ACL.NUL);
       opts (3).Description := New_String (-"Show all help options");
       opts (3).Arg         := G_Option_Arg_None;
       opts (3).Arg_Data    := To_Address (show_help_all'Access);
@@ -396,11 +395,11 @@ package body Adaview.Config is
    begin
       Put_Line ("save history to " & To_String (ctx.data_file));
       Create (out_file, Ada.Text_IO.Out_File, To_String (ctx.data_file));
-      if ctx.current_doc.checksum (1) /= ' ' then
-         save_one_entry (out_file, ctx.current_doc);
+      if ctx.cur_doc.checksum (1) /= ' ' then
+         save_one_entry (out_file, ctx.cur_doc);
       end if;
       for i in 1 .. ctx.total_doc loop
-         if ctx.current_doc.checksum /= ctx.history (i).checksum then
+         if ctx.cur_doc.checksum /= ctx.history (i).checksum then
             save_one_entry (out_file, ctx.history (i));
          end if;
       end loop;

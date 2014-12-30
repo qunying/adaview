@@ -45,11 +45,11 @@ package Adaview.Config is
 
    type doc_t is record
       name       : path_string_t := To_Unbounded_String ("");
-      temp_name  : path_string_t := To_Unbounded_String("");
+      temp_name  : path_string_t := To_Unbounded_String ("");
       checksum   : String (1 .. md5_length);
-      class      : doc_class_t := UNKNOWN;
-      cur_page   : Natural := 0;
-      total_page : Natural := 0;
+      class      : doc_class_t   := UNKNOWN;
+      cur_page   : Natural       := 0;
+      total_page : Natural       := 0;
    end record;
 
    type doc_history_t is array (Positive range <>) of doc_t;
@@ -57,7 +57,7 @@ package Adaview.Config is
    type context_t is record
       config_file     : path_string_t;
       data_file       : path_string_t;
-      current_doc     : doc_t;
+      cur_doc         : doc_t;
       history         : doc_history_t (1 .. max_recent_document_number);
       total_doc       : Natural := 0;
       history_changed : Boolean := False;
@@ -67,9 +67,10 @@ package Adaview.Config is
    -- Parse command line arguments.
    -- Raise exception Parameter_Error when arugment parsing failed
 
-   procedure get_file_md5 (file_name : in Unbounded_String;
-                           temp_name : in out Unbounded_String;
-                           checksum  : out String);
+   procedure get_file_md5
+     (file_name : in     Unbounded_String;
+      temp_name : in out Unbounded_String;
+      checksum  :    out String);
    -- Calculate the MD5 sum of a given file
    -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
    -- calculate the MD5 sum against the uncompressed file
