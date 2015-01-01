@@ -31,8 +31,7 @@ package Gtk.Main.Extra is
      (parameter_string   : UTF8_String;
       entries            : GOption_Entry_Array;
       translation_domain : String;
-      error              : access GError)
-      return               Boolean;
+      error              : access GError) return Boolean;
    -- This function does the same work as Init_Check. Additionally, it
    -- allows you to add your own commandline options, and it automatically
    -- generates nicesly formatted --help output. Note that your program will
@@ -49,8 +48,8 @@ package Gtk.Main.Extra is
    -- Return             : True if the windowing system has been successfully
    --                      initialized, False otherwise.
 
-   function Get_Option_Group (Open_Default_Display: Boolean := Standard.True)
-     return GOption_Group;
+   function Get_Option_Group
+     (Open_Default_Display : Boolean := Standard.True) return GOption_Group;
    -- Returns a GOptionGroup for the commandline arguments recognized by GTK+
    -- and GDK.
    --

@@ -25,6 +25,9 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+use Ada.Strings;
+
 package body GS.API is
 
    ---------------------------------------------------------------------------
@@ -44,6 +47,20 @@ package body GS.API is
    begin
       return Long_Integer (pr.revision);
    end get_revision_num;
+
+   ---------------------------------------------------------------------------
+   function get_revision_num_string (pr : revision_t) return String is
+      major : Long_Integer := Long_Integer (pr.revision) / 100;
+      minor : Long_Integer := Long_Integer (pr.revision) rem 100;
+   begin
+      if minor < 10 then
+         return Trim (Long_Integer'Image (major), Left) & ".0" &
+           Trim (Long_Integer'Image (minor), Left);
+      else
+         return Trim (Long_Integer'Image (major), Left) & "." &
+           Trim (Long_Integer'Image (minor), Left);
+      end if;
+   end get_revision_num_string;
 
    ---------------------------------------------------------------------------
    function get_revision_date (pr : revision_t) return Long_Integer is

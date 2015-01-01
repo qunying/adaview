@@ -59,7 +59,7 @@ with Interfaces.C;
 --  open, presize, memalloc, memfree, close
 --
 
-with Interfaces.C;         use Interfaces.C;
+with Interfaces.C; use Interfaces.C;
 with System;
 with Interfaces.C.Strings;
 
@@ -83,8 +83,7 @@ package GS.Display_Device is
    Display_Colors_Gray       : constant display_format_t := Shift_Left (1, 1);
    Display_Colors_RGB        : constant display_format_t := Shift_Left (1, 2);
    Display_Colors_CMYK       : constant display_format_t := Shift_Left (1, 3);
-   Display_Colors_Separation : constant display_format_t :=
-     Shift_Left (1, 19);
+   Display_Colors_Separation : constant display_format_t := Shift_Left (1, 19);
    Display_Colors_Mask       : constant display_format_t := 16#8_000f#;
 
    -- Define whether alpha information, or an extra unused bytes is included
@@ -92,9 +91,11 @@ package GS.Display_Device is
    Display_Alpha_None   : constant display_format_t := 0;
    Display_Alpha_First  : constant display_format_t := Shift_Left (1, 4);
    Display_Alpha_Last   : constant display_format_t := Shift_Left (1, 5);
-   Display_Unused_First : constant display_format_t := Shift_Left (1, 6); -- e.g. MAc xRGB (1, 6);
-   Display_Unused_Last  : constant display_format_t := Shift_Left (1, 7); -- e.g. Windows BGRx
-   Display_Alpha_Mask   : constant display_format_t := 16#00f0#;
+   Display_Unused_First : constant display_format_t :=
+     Shift_Left (1, 6); -- e.g. MAc xRGB (1, 6);
+   Display_Unused_Last : constant display_format_t :=
+     Shift_Left (1, 7); -- e.g. Windows BGRx
+   Display_Alpha_Mask : constant display_format_t := 16#00f0#;
 
    -- Define the depth per component for Display_Colors_Gray,
    -- Display_Colors_RGB and Display_Colors_CMYK,
@@ -136,8 +137,7 @@ package GS.Display_Device is
 
    type disp_cb_t is access function
      (handle : System.Address;
-      device : System.Address)
-      return   int;
+      device : System.Address) return int;
    pragma Convention (C, disp_cb_t);
 
    type disp_presize_cb_t is access function
@@ -146,8 +146,7 @@ package GS.Display_Device is
       width  : int;
       height : int;
       raster : int;
-      format : unsigned)
-      return   int;
+      format : unsigned) return int;
    pragma Convention (C, disp_presize_cb_t);
 
    type disp_size_cb_t is access function
@@ -157,16 +156,14 @@ package GS.Display_Device is
       height : int;
       raster : int;
       format : unsigned;
-      pimage : access unsigned_char)
-      return   int;
+      pimage : access unsigned_char) return int;
    pragma Convention (C, disp_size_cb_t);
 
    type disp_page_cb_t is access function
      (handle : System.Address;
       device : System.Address;
       copies : int;
-      flush  : int)
-      return   int;
+      flush  : int) return int;
    pragma Convention (C, disp_page_cb_t);
 
    type disp_update_cb_t is access function
@@ -175,22 +172,19 @@ package GS.Display_Device is
       x      : int;
       y      : int;
       w      : int;
-      h      : int)
-      return   int;
+      h      : int) return int;
    pragma Convention (C, disp_update_cb_t);
 
    type disp_memalloc_cb_t is access function
      (handle : System.Address;
       device : System.Address;
-      size   : unsigned_long)
-      return   System.Address;
+      size   : unsigned_long) return System.Address;
    pragma Convention (C, disp_memalloc_cb_t);
 
    type disp_memfree_cb_t is access function
      (handle : System.Address;
       device : System.Address;
-      mem    : System.Address)
-      return   int;
+      mem    : System.Address) return int;
    pragma Convention (C, disp_memfree_cb_t);
 
    type disp_separation_cb_t is access function
@@ -201,8 +195,7 @@ package GS.Display_Device is
       c              : unsigned_short;
       m              : unsigned_short;
       y              : unsigned_short;
-      k              : unsigned_short)
-      return           int;
+      k              : unsigned_short) return int;
    pragma Convention (C, disp_separation_cb_t);
 
    type display_callback_t is record

@@ -61,6 +61,10 @@ package GS.API is
    pragma Inline (get_revision_num);
    -- return revision number
 
+   function get_revision_num_string (pr : revision_t) return String;
+   pragma Inline (get_revision_num_string);
+   -- return major revision in string format
+
    function get_revision_date (pr : revision_t) return Long_Integer;
    pragma Inline (get_revision_date);
    -- return revision date
@@ -69,8 +73,7 @@ package GS.API is
 
    function new_instance
      (pinstance      : access instance_t;
-      caller_handler : System.Address)
-      return           code_t;
+      caller_handler : System.Address) return code_t;
    pragma Import (C, new_instance, "gsapi_new_instance");
    -- Create a new instance of Ghostscript. This instance is passed to most
    -- other API functions. The caller_handle will be provided to callback
@@ -92,15 +95,13 @@ package GS.API is
    type std_cb_fn_t is access function
      (caller_handle : System.Address;
       buf           : chars_ptr;
-      len           : int)
-      return          int;
+      len           : int) return int;
    pragma Convention (C, std_cb_fn_t);
    function set_stdio
      (instance  : instance_t;
       stdin_fn  : std_cb_fn_t;
       stdout_fn : std_cb_fn_t;
-      stderr_fn : std_cb_fn_t)
-      return      code_t;
+      stderr_fn : std_cb_fn_t) return code_t;
    pragma Import (C, set_stdio, "gsapi_set_stdio");
    -- Set the callback functions for stdio
    -- The stdin callback function should return the number of
@@ -110,13 +111,11 @@ package GS.API is
    -- If a callback address is NULL, the real stdio will be used.
 
    type poll_cb_fn_t is access function
-     (caller_handle : System.Address)
-      return          int;
+     (caller_handle : System.Address) return int;
    pragma Convention (C, poll_cb_fn_t);
    function set_poll
      (instance : instance_t;
-      poll_fn  : poll_cb_fn_t)
-      return     code_t;
+      poll_fn  : poll_cb_fn_t) return code_t;
    pragma Import (C, set_poll, "gsapi_set_poll");
    -- Set the callback function for polling.
    -- This is used for handling window events or cooperative
@@ -129,8 +128,7 @@ package GS.API is
 
    function set_display_callback
      (instance : instance_t;
-      callback : access display_callback_t)
-      return     code_t;
+      callback : access display_callback_t) return code_t;
    pragma Import (C, set_display_callback, "gsapi_set_display_callback");
    -- Set the display device callback structure.
    -- If the display device is used, this must be called
@@ -140,8 +138,7 @@ package GS.API is
    function init_with_args
      (instance : instance_t;
       argc     : int;
-      argv     : chars_ptr_array)
-      return     code_t;
+      argv     : chars_ptr_array) return code_t;
    pragma Import (C, init_with_args, "gsapi_init_with_args");
    -- Initialise the interpreter.
    -- This calls gs_main_init_with_args() in imainarg.c
@@ -165,8 +162,7 @@ package GS.API is
    function run_string_begin
      (instance    : instance_t;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_string_begin, "gsapi_run_string_begin");
 
    function run_string_continue
@@ -174,15 +170,13 @@ package GS.API is
       str         : chars_ptr;
       length      : unsigned;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_string_continue, "gsapi_run_string_continue");
 
    function run_string_end
      (instance    : instance_t;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_string_end, "gsapi_run_string_end");
 
    function run_string_with_length
@@ -190,24 +184,21 @@ package GS.API is
       str         : chars_ptr;
       length      : unsigned;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_string_with_length, "gsapi_run_string_with_length");
 
    function run_string
      (instance    : instance_t;
       str         : chars_ptr;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_string, "gsapi_run_string");
 
    function run_file
      (instance    : instance_t;
       file_name   : chars_ptr;
       user_errors : int;
-      pexit_code  : access int)
-      return        code_t;
+      pexit_code  : access int) return code_t;
    pragma Import (C, run_file, "gsapi_run_file");
 
    procedure gsapi_exit (instance : instance_t);

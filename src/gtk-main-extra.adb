@@ -33,30 +33,28 @@ package body Gtk.Main.Extra is
      (parameter_string   : UTF8_String;
       entries            : GOption_Entry_Array;
       translation_domain : String;
-      error              : access GError)
-      return               Boolean is
+      error              : access GError) return Boolean is
       function Internal
         (argc         : System.Address;
          argv         : System.Address;
          param_str    : UTF8_String;
          opts         : GOption_Entry_Array;
          trans_domain : String;
-         err          : access GError)
-         return         Gboolean;
+         err          : access GError) return Gboolean;
       pragma Import (C, Internal, "gtk_init_with_args");
    begin
       return Boolean'Val
-               (Internal
-                   (gnat_argc'Address,
-                    gnat_argv'Address,
-                    parameter_string & ASCII.NUL,
-                    entries,
-                    translation_domain & ASCII.NUL,
-                    error));
+          (Internal
+             (gnat_argc'Address,
+              gnat_argv'Address,
+              parameter_string & ASCII.NUL,
+              entries,
+              translation_domain & ASCII.NUL,
+              error));
    end Init_With_Args;
 
-   function Get_Option_Group (Open_Default_Display: Boolean := Standard.True)
-                              return GOption_Group is
+   function Get_Option_Group
+     (Open_Default_Display : Boolean := Standard.True) return GOption_Group is
       function Internal (default_open : Gboolean) return GOption_Group;
       pragma Import (C, Internal, "gtk_get_option_group");
    begin

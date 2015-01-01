@@ -122,8 +122,7 @@ begin
    --   Gtk.Main.Init;
    Put (get_product (gs_version) & ", ");
    Put_Line (get_copyright (gs_version));
-   Put ("Revision ");
-   Put (get_revision_num (gs_version), 1);
+   Put ("Version " & get_revision_num_string (gs_version));
    Put (" - ");
    Put (get_revision_date (gs_version), 1);
    New_Line;
