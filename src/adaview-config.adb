@@ -139,7 +139,7 @@ package body Adaview.Config is
       Add_Group (opts_ctx, gtk_opts_grp);
       Set_Help_Enabled (opts_ctx, False);
       ret := Parse (opts_ctx, error'Access);
-      if (ret = False) then
+      if ret = False then
          Put_Line (-"Error: " & Get_Message (error));
          raise Parameter_Error;
       end if;
@@ -156,8 +156,8 @@ package body Adaview.Config is
       end if;
       -- free the opts and context
       for i in opts'Range loop
-         Free (opts(i).Long_Name);
-         Free (opts(i).Description);
+         Free (opts (i).Long_Name);
+         Free (opts (i).Description);
       end loop;
       Free (opts_ctx);
    end process_options;
@@ -188,7 +188,7 @@ package body Adaview.Config is
       Put_Line ("got temp file " & To_Ada (template_name));
       -- remove the trailling NUL character
       temp_name :=
-        To_Unbounded_String (To_Ada(template_name));
+        To_Unbounded_String (To_Ada (template_name));
       case comp_type is
          when COMPRESS | GZIP =>
             cmd_ptr := cmd_gzip'Access;
@@ -205,7 +205,7 @@ package body Adaview.Config is
       --!pp on
       Put_Line ("decompress result: " & Integer'Image (ret));
       -- decompress file have zero length, consider failed.
-      if Size (To_String(temp_name)) = 0 then
+      if Size (To_String (temp_name)) = 0 then
          raise Invalid_file
            with "file " & To_String (file_name) & " is invalid.";
       end if;

@@ -21,13 +21,13 @@
 
 package body GS.Errors is
 
-   function is_interrupt (ecode : code_t) return Boolean is
+   function Is_Interrupt (E_Code : Code_T) return Boolean is
    begin
-      if ecode = e_interrupt or ecode = e_timeout then
+      if E_Code = E_Interrupt or E_Code = E_Timeout then
          return True;
       end if;
 
       return False;
-   end is_interrupt;
+   end Is_Interrupt;
 
 end GS.Errors;

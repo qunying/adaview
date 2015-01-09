@@ -31,41 +31,41 @@ use Ada.Strings;
 package body GS.API is
 
    ---------------------------------------------------------------------------
-   function get_product (pr : revision_t) return String is
+   function Get_Product (Rev : Revision_T) return String is
    begin
-      return Interfaces.C.Strings.Value (pr.product);
-   end get_product;
+      return Interfaces.C.Strings.Value (Rev.Product);
+   end Get_Product;
 
    ---------------------------------------------------------------------------
-   function get_copyright (pr : revision_t) return String is
+   function Get_Copyright (Rev : Revision_T) return String is
    begin
-      return Interfaces.C.Strings.Value (pr.copyright);
-   end get_copyright;
+      return Interfaces.C.Strings.Value (Rev.Copyright);
+   end Get_Copyright;
 
    ---------------------------------------------------------------------------
-   function get_revision_num (pr : revision_t) return Long_Integer is
+   function Get_Revision_Num (Rev : Revision_T) return Long_Integer is
    begin
-      return Long_Integer (pr.revision);
-   end get_revision_num;
+      return Long_Integer (Rev.Revision);
+   end Get_Revision_Num;
 
    ---------------------------------------------------------------------------
-   function get_revision_num_string (pr : revision_t) return String is
-      major : Long_Integer := Long_Integer (pr.revision) / 100;
-      minor : Long_Integer := Long_Integer (pr.revision) rem 100;
+   function Get_Revision_Num_String (Rev : Revision_T) return String is
+      Major : Long_Integer := Long_Integer (Rev.Revision) / 100;
+      Minor : Long_Integer := Long_Integer (Rev.Revision) rem 100;
    begin
-      if minor < 10 then
-         return Trim (Long_Integer'Image (major), Left) & ".0" &
-           Trim (Long_Integer'Image (minor), Left);
+      if Minor < 10 then
+         return Trim (Long_Integer'Image (Major), Left) & ".0" &
+           Trim (Long_Integer'Image (Minor), Left);
       else
-         return Trim (Long_Integer'Image (major), Left) & "." &
-           Trim (Long_Integer'Image (minor), Left);
+         return Trim (Long_Integer'Image (Major), Left) & "." &
+           Trim (Long_Integer'Image (Minor), Left);
       end if;
-   end get_revision_num_string;
+   end Get_Revision_Num_String;
 
    ---------------------------------------------------------------------------
-   function get_revision_date (pr : revision_t) return Long_Integer is
+   function Get_Revision_Date (Rev : Revision_T) return Long_Integer is
    begin
-      return Long_Integer (pr.revisiondate);
-   end get_revision_date;
+      return Long_Integer (Rev.Revision_Date);
+   end Get_Revision_Date;
 
 end GS.API;

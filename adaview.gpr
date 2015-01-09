@@ -52,7 +52,7 @@ project Adaview is
             for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
 
          when "relocatable" =>
-            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
+            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnat05", "-gnatyabhiknprstux");
       end case;
    end Compiler;
 

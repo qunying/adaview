@@ -42,9 +42,9 @@ with Adaview.Config;
 with Adaview.Locale;
 
 procedure Adaview_main is
-   gs_version  : aliased revision_t;
-   instance    : aliased instance_t;
-   ret         : code_t;
+   gs_version  : aliased Revision_T;
+   instance    : aliased Instance_T;
+   ret         : Code_T;
    doc_ctx     : Adaview.Config.context_t;
    matched_idx : Natural := 0;
 begin
@@ -64,7 +64,7 @@ begin
    Adaview.Config.load_config (doc_ctx);
 
    if Argument_Count >= 1 then
-      if Argument(1)(1) = '/' then
+      if Argument (1)(1) = '/' then
          doc_ctx.cur_doc.name := To_Unbounded_String (Argument (1));
       else
          declare
@@ -82,7 +82,7 @@ begin
          doc_ctx.cur_doc.checksum);
       Put_Line ("md5: " & doc_ctx.cur_doc.checksum);
 
-      if (Argument_Count = 2) then
+      if Argument_Count = 2 then
          doc_ctx.cur_doc.cur_page := Integer'Value (Argument (2));
       end if;
       -- try to see if we have the file in the history
@@ -114,20 +114,20 @@ begin
       doc_ctx.history_changed := True;
    end if;
 
-   if revision (gs_version'Access, gs_version'Size / 8) > 0 then
+   if Revision (gs_version'Access, gs_version'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
       return;
    end if;
 
    --   Gtk.Main.Init;
-   Put (get_product (gs_version) & ", ");
-   Put_Line (get_copyright (gs_version));
-   Put ("Version " & get_revision_num_string (gs_version));
+   Put (Get_Product (gs_version) & ", ");
+   Put_Line (Get_Copyright (gs_version));
+   Put ("Version " & Get_Revision_Num_String (gs_version));
    Put (" - ");
-   Put (get_revision_date (gs_version), 1);
+   Put (Get_Revision_Date (gs_version), 1);
    New_Line;
 
-   ret := new_instance (instance'Access, Null_Address);
+   ret := New_Instance (instance'Access, Null_Address);
    if ret < 0 then
       Put_Line ("call new instance failed.");
       Put ("Error code: ");
@@ -138,7 +138,7 @@ begin
    end if;
 
    Put_Line ("delete instance");
-   delete_instance (instance);
+   Delete_Instance (instance);
    Adaview.Config.save_config (doc_ctx);
    if doc_ctx.cur_doc.name /= doc_ctx.cur_doc.temp_name then
       Delete_File (To_String (doc_ctx.cur_doc.temp_name));

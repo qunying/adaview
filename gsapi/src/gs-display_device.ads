@@ -198,7 +198,7 @@ package GS.Display_Device is
       k              : unsigned_short) return int;
    pragma Convention (C, disp_separation_cb_t);
 
-   type display_callback_t is record
+   type Display_Callback_T is record
       size : int;
       -- Size of this structure
       -- used for checking if we have been handed a valid structure
@@ -272,7 +272,7 @@ package GS.Display_Device is
       -- The unsigned short c,m,y,k values are 65535 = 1.0.
       -- This function pointer may be set to NULL if not required.
    end record;
-   pragma Convention (C, display_callback_t);
+   pragma Convention (C, Display_Callback_T);
    -- Note that for Windows, the display callback functions are
    -- cdecl, not stcall.  This differs from those in GS.API.
 

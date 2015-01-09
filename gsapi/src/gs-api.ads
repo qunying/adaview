@@ -38,10 +38,10 @@ package GS.API is
    use GS.Display_Device;
    use GS.Errors;
 
-   type revision_t is limited private;
+   type Revision_T is limited private;
 
-   function revision (pr : access revision_t; len : int) return Integer;
-   pragma Import (C, revision, "gsapi_revision");
+   function Revision (Rev : access Revision_T; Len : int) return Integer;
+   pragma Import (C, Revision, "gsapi_revision");
    -- Get version numbers and strings This is safe to call at any time. You
    -- should call this first to make sure that the correct version of the
    -- Ghostscript is being used. pr is a pointer to a revision structure. len
@@ -49,32 +49,32 @@ package GS.API is
    -- small (additional parameters have been added to the structure) it will
    -- return the required size of the structure.
 
-   function get_product (pr : revision_t) return String;
-   pragma Inline (get_product);
+   function Get_Product (Rev : Revision_T) return String;
+   pragma Inline (Get_Product);
    -- return product as Ada string
 
-   function get_copyright (pr : revision_t) return String;
-   pragma Inline (get_copyright);
+   function Get_Copyright (Rev : Revision_T) return String;
+   pragma Inline (Get_Copyright);
    -- return copyright as Ada string
 
-   function get_revision_num (pr : revision_t) return Long_Integer;
-   pragma Inline (get_revision_num);
+   function Get_Revision_Num (Rev : Revision_T) return Long_Integer;
+   pragma Inline (Get_Revision_Num);
    -- return revision number
 
-   function get_revision_num_string (pr : revision_t) return String;
-   pragma Inline (get_revision_num_string);
+   function Get_Revision_Num_String (Rev : Revision_T) return String;
+   pragma Inline (Get_Revision_Num_String);
    -- return major revision in string format
 
-   function get_revision_date (pr : revision_t) return Long_Integer;
-   pragma Inline (get_revision_date);
+   function Get_Revision_Date (Rev : Revision_T) return Long_Integer;
+   pragma Inline (Get_Revision_Date);
    -- return revision date
 
-   type instance_t is limited private;
+   type Instance_T is limited private;
 
-   function new_instance
-     (pinstance      : access instance_t;
-      caller_handler : System.Address) return code_t;
-   pragma Import (C, new_instance, "gsapi_new_instance");
+   function New_Instance
+     (Instance_Ptr   : access Instance_T;
+      Caller_Handler : System.Address) return Code_T;
+   pragma Import (C, New_Instance, "gsapi_new_instance");
    -- Create a new instance of Ghostscript. This instance is passed to most
    -- other API functions. The caller_handle will be provided to callback
    -- functions.
@@ -86,23 +86,23 @@ package GS.API is
    --  will return < 0 and set pinstance to NULL.
    -- WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 
-   procedure delete_instance (instance : instance_t);
-   pragma Import (C, delete_instance, "gsapi_delete_instance");
+   procedure Delete_Instance (instance : Instance_T);
+   pragma Import (C, Delete_Instance, "gsapi_delete_instance");
    -- Destroy an instance of Ghostscript Before you call this, Ghostscript must
    -- have finished. If Ghostscript has been initialised, you must call
-   -- gsapi.gsapi_exit() before gsapi_delete_instance.
+   -- gsapi.gsapi_exit() before gsapi_Delete_Instance.
 
-   type std_cb_fn_t is access function
-     (caller_handle : System.Address;
-      buf           : chars_ptr;
-      len           : int) return int;
-   pragma Convention (C, std_cb_fn_t);
-   function set_stdio
-     (instance  : instance_t;
-      stdin_fn  : std_cb_fn_t;
-      stdout_fn : std_cb_fn_t;
-      stderr_fn : std_cb_fn_t) return code_t;
-   pragma Import (C, set_stdio, "gsapi_set_stdio");
+   type Std_Cb_Fn_T is access function
+     (Caller_Handle : System.Address;
+      Buf           : chars_ptr;
+      Len           : int) return int;
+   pragma Convention (C, Std_Cb_Fn_T);
+   function Set_Stdio
+     (Instance  : Instance_T;
+      Stdin_Fn  : Std_Cb_Fn_T;
+      Stdout_Fn : Std_Cb_Fn_T;
+      Stderr_Fn : Std_Cb_Fn_T) return Code_T;
+   pragma Import (C, Set_Stdio, "gsapi_set_stdio");
    -- Set the callback functions for stdio
    -- The stdin callback function should return the number of
    -- characters read, 0 for EOF, or -1 for error.
@@ -110,13 +110,13 @@ package GS.API is
    -- the number of characters written.
    -- If a callback address is NULL, the real stdio will be used.
 
-   type poll_cb_fn_t is access function
-     (caller_handle : System.Address) return int;
-   pragma Convention (C, poll_cb_fn_t);
-   function set_poll
-     (instance : instance_t;
-      poll_fn  : poll_cb_fn_t) return code_t;
-   pragma Import (C, set_poll, "gsapi_set_poll");
+   type Poll_Cb_Fn_T is access function
+     (Caller_Handle : System.Address) return int;
+   pragma Convention (C, Poll_Cb_Fn_T);
+   function Set_Poll
+     (Instance : Instance_T;
+      Poll_Fn  : Poll_Cb_Fn_T) return Code_T;
+   pragma Import (C, Set_Poll, "gsapi_set_poll");
    -- Set the callback function for polling.
    -- This is used for handling window events or cooperative
    -- multitasking.  This function will only be called if
@@ -126,20 +126,20 @@ package GS.API is
    -- and negative if it wants ghostscript to abort.
    -- The polling function must be fast.
 
-   function set_display_callback
-     (instance : instance_t;
-      callback : access display_callback_t) return code_t;
-   pragma Import (C, set_display_callback, "gsapi_set_display_callback");
+   function Set_Display_Callback
+     (Instance : Instance_T;
+      Callback : access Display_Callback_T) return Code_T;
+   pragma Import (C, Set_Display_Callback, "gsapi_set_display_callback");
    -- Set the display device callback structure.
    -- If the display device is used, this must be called
-   -- after GS.API.new_instance() and before GS.API.init_with_args().
+   -- after GS.API.New_Instance() and before GS.API.init_with_args().
    -- See gdevdisp.h for more details.
 
-   function init_with_args
-     (instance : instance_t;
-      argc     : int;
-      argv     : chars_ptr_array) return code_t;
-   pragma Import (C, init_with_args, "gsapi_init_with_args");
+   function Init_With_Args
+     (Instance : Instance_T;
+      Argc     : int;
+      Argv     : chars_ptr_array) return Code_T;
+   pragma Import (C, Init_With_Args, "gsapi_init_with_args");
    -- Initialise the interpreter.
    -- This calls gs_main_init_with_args() in imainarg.c
    -- 1. If quit or EOF occur during gsapi_init_with_args(),
@@ -159,64 +159,64 @@ package GS.API is
    -- The only exception is run_string_continue()
    -- which will return e_NeedInput if all is well.
 
-   function run_string_begin
-     (instance    : instance_t;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_string_begin, "gsapi_run_string_begin");
+   function Run_String_Begin
+     (Instance    : Instance_T;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_String_Begin, "gsapi_run_string_begin");
 
-   function run_string_continue
-     (instance    : instance_t;
-      str         : chars_ptr;
-      length      : unsigned;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_string_continue, "gsapi_run_string_continue");
+   function Run_String_Continue
+     (Instance    : Instance_T;
+      Str         : chars_ptr;
+      Length      : unsigned;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_String_Continue, "gsapi_run_string_continue");
 
-   function run_string_end
-     (instance    : instance_t;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_string_end, "gsapi_run_string_end");
+   function Run_String_End
+     (Instance    : Instance_T;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_String_End, "gsapi_run_string_end");
 
-   function run_string_with_length
-     (instance    : instance_t;
-      str         : chars_ptr;
-      length      : unsigned;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_string_with_length, "gsapi_run_string_with_length");
+   function Run_String_With_Length
+     (Instance    : Instance_T;
+      Str         : chars_ptr;
+      Length      : unsigned;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_String_With_Length, "gsapi_run_string_with_length");
 
-   function run_string
-     (instance    : instance_t;
-      str         : chars_ptr;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_string, "gsapi_run_string");
+   function Run_String
+     (Instance    : Instance_T;
+      Str         : chars_ptr;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_String, "gsapi_run_string");
 
-   function run_file
-     (instance    : instance_t;
-      file_name   : chars_ptr;
-      user_errors : int;
-      pexit_code  : access int) return code_t;
-   pragma Import (C, run_file, "gsapi_run_file");
+   function Run_File
+     (Instance    : Instance_T;
+      File_Name   : chars_ptr;
+      User_Errors : int;
+      Pexit_Code  : access int) return Code_T;
+   pragma Import (C, Run_File, "gsapi_run_file");
 
-   procedure gsapi_exit (instance : instance_t);
-   pragma Import (C, gsapi_exit, "gsapi_exit");
+   procedure Gsapi_Exit (instance : Instance_T);
+   pragma Import (C, Gsapi_Exit, "gsapi_exit");
    -- Exit the interpreter.
    -- This must be called on shutdown if gsapi.init_with_args()
-   -- has been called, and just before gsapi.delete_instance().
+   -- has been called, and just before gsapi.Delete_Instance().
    -- "gsapi_" is added as prefix to avoid the crash with Ada's keyword.
 
    -- no gsapi_set_visual_tracer for now
 private
-   type instance_t is new System.Address;
+   type Instance_T is new System.Address;
 
-   type revision_t is limited record
-      product      : chars_ptr;
-      copyright    : chars_ptr;
-      revision     : long;
-      revisiondate : long;
+   type Revision_T is limited record
+      Product       : chars_ptr;
+      Copyright     : chars_ptr;
+      Revision      : long;
+      Revision_Date : long;
    end record;
-   pragma Convention (C_Pass_By_Copy, revision_t);
+   pragma Convention (C_Pass_By_Copy, Revision_T);
 end GS.API;
