@@ -1,5 +1,6 @@
 with "gtkada";
 with "florist";
+with "gsapi/gsapi";
 
 project Adaview is
 
@@ -44,8 +45,20 @@ project Adaview is
    end Binder;
 
    package Compiler is
-      for Default_Switches ("ada") use ("-g", "-gnatf", "-gnat05");
+
+      case Library_Type is
+
+         when "static" =>
+            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
+
+         when "relocatable" =>
+            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
+      end case;
    end Compiler;
+
+   package Ide is
+      for Vcs_Kind use "Git";
+   end Ide;
 
 end Adaview;
 
