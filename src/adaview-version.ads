@@ -34,14 +34,14 @@ package Adaview.Version is
      Trim (Integer'Image (Minor), Ada.Strings.Left) &
      Integer'Image (Date);
 
-   prgname : constant String := "adaview";
+   Prg_Name : constant String := "adaview";
 
-   function get_description return Glib.UTF8_String;
+   function Get_Description return Glib.UTF8_String;
    -- return program description message
 
-   function get_copyright return Glib.UTF8_String;
+   function Get_Copyright return Glib.UTF8_String;
    -- return program copyright information
 
-   function get_license return Glib.UTF8_String;
+   function Get_License return Glib.UTF8_String;
    -- return program license information
 end Adaview.Version;

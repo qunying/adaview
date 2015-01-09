@@ -25,19 +25,19 @@ package body Adaview.Version is
    LF : Character := Ada.Characters.Latin_1.LF;
 
    ---------------------------------------------------------------------------
-   function get_description return  Glib.UTF8_String is
+   function Get_Description return  Glib.UTF8_String is
    begin
       return -"A PostScript/PDF viewer.";
-   end get_description;
+   end Get_Description;
 
    ---------------------------------------------------------------------------
-   function get_copyright return  Glib.UTF8_String is
+   function Get_Copyright return  Glib.UTF8_String is
    begin
       return -"Copyright (C) 2014 Zhu Qun-Ying";
-   end get_copyright;
+   end Get_Copyright;
 
    ---------------------------------------------------------------------------
-   function get_license return  Glib.UTF8_String is
+   function Get_License return  Glib.UTF8_String is
    begin
       return -(
 "Adaview is free software; you can redistribute it and/or modify" & LF &
@@ -52,5 +52,5 @@ LF &
 LF &
 "You should have received a copy of the GNU General Public License" & LF &
 "along with this program; if not, see <http://www.gnu.org/licenses/>." & LF);
-   end get_license;
+   end Get_License;
 end Adaview.Version;

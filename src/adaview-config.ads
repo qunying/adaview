@@ -29,58 +29,58 @@ package Adaview.Config is
 
    use Ada.Strings.Unbounded;
 
-   md5_length                 : constant := 32;
-   max_file_path_length       : constant := 512;
-   max_recent_document_number : constant := 10;
+   MD5_Length                 : constant := 32;
+   Max_File_Path_Length       : constant := 512;
+   Max_Recent_Document_Number : constant := 10;
    -- store only 10 recent documents, may change to configuratble
    Parameter_Error : exception;
    No_temp_file : exception;
    Invalid_file : exception;
 
-   type byte_t is mod 2**8;
-   type byte_string_t is array (Positive range <>) of byte_t;
-   subtype path_string_t is Unbounded_String;
+   type Byte_T is mod 2**8;
+   type Byte_String_T is array (Positive range <>) of Byte_T;
+   subtype Path_T is Unbounded_String;
 
-   type doc_class_t is (UNKNOWN, PS, PDF);
+   type Doc_Class_T is (UNKNOWN, PS, PDF);
 
-   type doc_t is record
-      name       : path_string_t := To_Unbounded_String ("");
-      temp_name  : path_string_t := To_Unbounded_String ("");
-      checksum   : String (1 .. md5_length);
-      class      : doc_class_t   := UNKNOWN;
-      cur_page   : Natural       := 0;
-      total_page : Natural       := 0;
+   type Doc_T is record
+      Name       : Path_T := To_Unbounded_String ("");
+      Temp_Name  : Path_T := To_Unbounded_String ("");
+      Checksum   : String (1 .. MD5_Length);
+      Class      : Doc_Class_T   := UNKNOWN;
+      Cur_Page   : Natural       := 0;
+      Total_Page : Natural       := 0;
    end record;
 
-   type doc_history_t is array (Positive range <>) of doc_t;
+   type Doc_History_T is array (Positive range <>) of Doc_T;
 
-   type context_t is record
-      config_file     : path_string_t;
-      data_file       : path_string_t;
-      cur_doc         : doc_t;
-      history         : doc_history_t (1 .. max_recent_document_number);
-      total_doc       : Natural := 0;
-      history_changed : Boolean := False;
+   type Context_T is record
+      Config_File     : Path_T;
+      Data_File       : Path_T;
+      Cur_Doc         : Doc_T;
+      History         : Doc_History_T (1 .. Max_Recent_Document_Number);
+      Total_Doc       : Natural := 0;
+      History_Changed : Boolean := False;
    end record;
 
-   procedure process_options;
+   procedure Process_Options;
    -- Parse command line arguments.
    -- Raise exception Parameter_Error when arugment parsing failed
 
-   procedure get_file_md5
-     (file_name : in     Unbounded_String;
-      temp_name : in out Unbounded_String;
-      checksum  :    out String);
+   procedure Get_File_MD5
+     (File_Name : in     Unbounded_String;
+      Temp_Name : in out Unbounded_String;
+      Checksum  :    out String);
    -- Calculate the MD5 sum of a given file
    -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
    -- calculate the MD5 sum against the uncompressed file
 
-   procedure load_config (ctx : in out context_t);
+   procedure Load_Config (ctx : in out Context_T);
    -- load configuration and recent histories
 
-   procedure save_config (ctx : in context_t);
+   procedure Save_Config (Ctx : in Context_T);
 
 private
-   procedure load_history (ctx : in out context_t);
-   procedure save_history (ctx : in context_t);
+   procedure Load_History (Ctx : in out Context_T);
+   procedure Save_History (Ctx : in Context_T);
 end Adaview.Config;

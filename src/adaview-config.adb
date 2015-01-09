@@ -48,324 +48,324 @@ with System.OS_Lib;   use System.OS_Lib;
 
 package body Adaview.Config is
 
-   opts_ctx      : Goption_Context;
-   opts          : GOption_Entry_Array (1 .. 4);
-   gtk_opts_grp  : GOption_Group;
-   show_version  : aliased Gboolean;
-   show_help     : aliased Gboolean;
-   show_help_all : aliased Gboolean;
-   cmd_gzip      : aliased String := "gzip";
-   cmd_bzip2     : aliased String := "bzip2";
-   cmd_xz        : aliased String := "xz";
+   Opts_Ctx      : Goption_Context;
+   Opts          : GOption_Entry_Array (1 .. 4);
+   Gtk_Opts_Grp  : GOption_Group;
+   Show_Version  : aliased Gboolean;
+   Show_Help     : aliased Gboolean;
+   Show_Help_All : aliased Gboolean;
+   Cmd_Gzip      : aliased String := "gzip";
+   Cmd_Bzip2     : aliased String := "bzip2";
+   Cmd_Xz        : aliased String := "xz";
 
-   type compress_t is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
+   type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
 
-   type gboolean_access is access all Gboolean;
+   type Gboolean_Access is access all Gboolean;
    package ACL renames Ada.Characters.Latin_1;
 
    ---------------------------------------------------------------------------
-   function To_Address (C : gboolean_access) return System.Address is
+   function To_Address (C : Gboolean_Access) return System.Address is
       function Convert is new Ada.Unchecked_Conversion
-        (gboolean_access,
+        (Gboolean_Access,
          Glib.C_Proxy);
    begin
       return Glib.To_Address (Convert (C));
    end To_Address;
 
    ---------------------------------------------------------------------------
-   procedure print_short_version is
+   procedure Print_Short_Version is
    begin
-      Put (prgname & " " & Adaview.Version.Text & " - ");
-      Put_Line (get_description);
-      Put_Line (get_copyright);
-   end print_short_version;
+      Put (Prg_Name & " " & Adaview.Version.Text & " - ");
+      Put_Line (Get_Description);
+      Put_Line (Get_Copyright);
+   end Print_Short_Version;
 
-   procedure print_version is
+   procedure Print_Version is
    begin
-      print_short_version;
+      Print_Short_Version;
       New_Line;
-      Put_Line (get_license);
-   end print_version;
+      Put_Line (Get_License);
+   end Print_Version;
 
    ---------------------------------------------------------------------------
-   procedure usage (opts_ctx : in Goption_Context; Main_Help : Boolean) is
+   procedure Usage (Opts_Ctx : in Goption_Context; Main_Help : Boolean) is
    begin
-      print_short_version;
+      Print_Short_Version;
       Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
       declare
-         help_msg : String  := Get_Help (opts_ctx, Main_Help, null);
-         idx      : Positive;
-         count    : Natural := 0;
+         Help_Msg : String  := Get_Help (Opts_Ctx, Main_Help, null);
+         Idx      : Positive;
+         Count    : Natural := 0;
       begin
          -- skip the first few lines to use our own format
-         for i in help_msg'Range loop
-            if help_msg (i) = ACL.LF then
-               count := count + 1;
-               idx   := i;
+         for i in Help_Msg'Range loop
+            if Help_Msg (i) = ACL.LF then
+               Count := Count + 1;
+               Idx   := i;
             end if;
-            exit when count = 2;
+            exit when Count = 2;
          end loop;
-         Put_Line (help_msg (idx + 1 .. help_msg'Last));
+         Put_Line (Help_Msg (Idx + 1 .. Help_Msg'Last));
       end;
       System.OS_Lib.OS_Exit (0);
-   end usage;
+   end Usage;
 
    ---------------------------------------------------------------------------
-   procedure process_options is
-      error : aliased GError;
-      ret   : Boolean;
+   procedure Process_Options is
+      Error : aliased GError;
+      Ret   : Boolean;
    begin
       -- fill in the options
-      opts (1).Long_Name   := New_String ("version");
-      opts (1).Short_Name  := 'v';
-      opts (1).Description := New_String (-"Show version information");
-      opts (1).Arg         := G_Option_Arg_None;
-      opts (1).Arg_Data    := To_Address (show_version'Access);
+      Opts (1).Long_Name   := New_String ("version");
+      Opts (1).Short_Name  := 'v';
+      Opts (1).Description := New_String (-"Show version information");
+      Opts (1).Arg         := G_Option_Arg_None;
+      Opts (1).Arg_Data    := To_Address (Show_Version'Access);
 
-      opts (2).Long_Name   := New_String ("help");
-      opts (2).Short_Name  := 'h';
-      opts (2).Description := New_String (-"Show help options");
-      opts (2).Arg         := G_Option_Arg_None;
-      opts (2).Arg_Data    := To_Address (show_help'Access);
+      Opts (2).Long_Name   := New_String ("help");
+      Opts (2).Short_Name  := 'h';
+      Opts (2).Description := New_String (-"Show help options");
+      Opts (2).Arg         := G_Option_Arg_None;
+      Opts (2).Arg_Data    := To_Address (Show_Help'Access);
 
-      opts (3).Long_Name   := New_String ("help-all");
-      opts (3).Description := New_String (-"Show all help options");
-      opts (3).Arg         := G_Option_Arg_None;
-      opts (3).Arg_Data    := To_Address (show_help_all'Access);
+      Opts (3).Long_Name   := New_String ("help-all");
+      Opts (3).Description := New_String (-"Show all help options");
+      Opts (3).Arg         := G_Option_Arg_None;
+      Opts (3).Arg_Data    := To_Address (Show_Help_All'Access);
 
-      opts_ctx := G_New;
-      Add_Main_Entries (opts_ctx, opts);
-      gtk_opts_grp := Get_Option_Group (False);
-      Add_Group (opts_ctx, gtk_opts_grp);
-      Set_Help_Enabled (opts_ctx, False);
-      ret := Parse (opts_ctx, error'Access);
-      if ret = False then
-         Put_Line (-"Error: " & Get_Message (error));
+      Opts_Ctx := G_New;
+      Add_Main_Entries (Opts_Ctx, Opts);
+      Gtk_Opts_Grp := Get_Option_Group (False);
+      Add_Group (Opts_Ctx, Gtk_Opts_Grp);
+      Set_Help_Enabled (Opts_Ctx, False);
+      Ret := Parse (Opts_Ctx, Error'Access);
+      if Ret = False then
+         Put_Line (-"Error: " & Get_Message (Error));
          raise Parameter_Error;
       end if;
-      if show_version /= 0 then
-         print_version;
+      if Show_Version /= 0 then
+         Print_Version;
          System.OS_Lib.OS_Exit (0);
       end if;
-      if show_help /= 0 then
-         usage (opts_ctx, True);
+      if Show_Help /= 0 then
+         Usage (Opts_Ctx, True);
       end if;
 
-      if show_help_all /= 0 then
-         usage (opts_ctx, False);
+      if Show_Help_All /= 0 then
+         Usage (Opts_Ctx, False);
       end if;
       -- free the opts and context
-      for i in opts'Range loop
-         Free (opts (i).Long_Name);
-         Free (opts (i).Description);
+      for i in Opts'Range loop
+         Free (Opts (i).Long_Name);
+         Free (Opts (i).Description);
       end loop;
-      Free (opts_ctx);
-   end process_options;
+      Free (Opts_Ctx);
+   end Process_Options;
 
    ---------------------------------------------------------------------------
-   procedure decompress_file
-     (file_name : in     Unbounded_String;
-      temp_name : in out Unbounded_String;
-      comp_type : in     compress_t) is
-      base          : String := Base_Name (To_String (file_name));
-      template_name : char_array := To_C ("/tmp/adaview-" & base & ".XXXXXX");
-      cmd_ptr       : System.OS_Lib.String_Access;
-      arguments     : Argument_List (1 .. 2);
-      fd            : File_Descriptor;
-      ret           : Integer;
-      function c_mkstemp (filename : char_array) return File_Descriptor;
-      pragma Import (C, c_mkstemp, "mkstemp");
+   procedure Decompress_File
+     (File_Name : in     Unbounded_String;
+      Temp_Name : in out Unbounded_String;
+      Compress_Type : in     Compress_T) is
+      Base          : String := Base_Name (To_String (File_Name));
+      Template_Name : char_array := To_C ("/tmp/adaview-" & Base & ".XXXXXX");
+      CMD_Ptr       : System.OS_Lib.String_Access;
+      Arguments     : Argument_List (1 .. 2);
+      Fd            : File_Descriptor;
+      Ret           : Integer;
+      function C_Mkstemp (filename : char_array) return File_Descriptor;
+      pragma Import (C, C_Mkstemp, "mkstemp");
 
-      function sys (Arg : char_array) return Integer;
-      pragma Import (C, sys, "system");
+      function Sys (Arg : char_array) return Integer;
+      pragma Import (C, Sys, "system");
    begin
-      fd := c_mkstemp (template_name);
-      if fd = -1 then
+      Fd := C_Mkstemp (Template_Name);
+      if Fd = -1 then
          raise No_temp_file;
       end if;
-      Close (fd);
+      Close (Fd);
 
-      Put_Line ("got temp file " & To_Ada (template_name));
+      Put_Line ("got temp file " & To_Ada (Template_Name));
       -- remove the trailling NUL character
-      temp_name :=
-        To_Unbounded_String (To_Ada (template_name));
-      case comp_type is
+      Temp_Name :=
+        To_Unbounded_String (To_Ada (Template_Name));
+      case Compress_Type is
          when COMPRESS | GZIP =>
-            cmd_ptr := cmd_gzip'Access;
+            CMD_Ptr := Cmd_Gzip'Access;
          when BZIP2 =>
-            cmd_ptr := cmd_bzip2'Access;
+            CMD_Ptr := Cmd_Bzip2'Access;
          when XZ =>
-            cmd_ptr := cmd_xz'Access;
+            CMD_Ptr := Cmd_Xz'Access;
          when others =>
             null;
       end case;
       --!pp off
-      ret := sys (To_C (cmd_ptr.all & " -dc " & To_String (file_name)
-                        & " > " & To_String (temp_name)));
+      Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
+                        & " > " & To_String (Temp_Name)));
       --!pp on
-      Put_Line ("decompress result: " & Integer'Image (ret));
+      Put_Line ("decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
-      if Size (To_String (temp_name)) = 0 then
+      if Size (To_String (Temp_Name)) = 0 then
          raise Invalid_file
-           with "file " & To_String (file_name) & " is invalid.";
+           with "file " & To_String (File_Name) & " is invalid.";
       end if;
-   end decompress_file;
+   end Decompress_File;
 
    ---------------------------------------------------------------------------
-   procedure get_file_md5
-     (file_name : in     Unbounded_String;
-      temp_name : in out Unbounded_String;
-      checksum  :    out String) is
+   procedure Get_File_MD5
+     (File_Name : in     Unbounded_String;
+      Temp_Name : in out Unbounded_String;
+      Checksum  :    out String) is
       use Ada.Streams;
 
-      in_file         : Stream_IO.File_Type;
-      data_block_size : constant := 8192;
+      In_File         : Stream_IO.File_Type;
+      Data_Block_Size : constant := 8192;
 
-      data : byte_string_t (1 .. data_block_size);
+      Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
 
-      last           : Natural;
-      compress_magic : constant byte_string_t := (16#1F#, 16#9d#);
-      gzip_magic     : constant byte_string_t := (16#1F#, 16#8B#);
+      Last           : Natural;
+      Compress_Magic : constant Byte_String_T := (16#1F#, 16#9d#);
+      Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
 
-      bzip2_magic : constant byte_string_t := (16#42#, 16#5a#, 16#68#);
+      Bzip2_Magic : constant Byte_String_T := (16#42#, 16#5a#, 16#68#);
       --"BZh"
 
-      xz_magic : constant byte_string_t :=
+      Xz_Magic : constant Byte_String_T :=
         (16#FD#, 16#37#, 16#7a#, 16#58#, 16#5A#, 16#00#);
       -- {0xFD, '7', 'z', 'X', 'Z', 0x00}
-      comp_type : compress_t := NO_COMPRESS;
+      Compress_Type : Compress_T := NO_COMPRESS;
 
-      subtype SEA_T is Stream_Element_Array (1 .. data_block_size);
+      subtype SEA_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new System.Address_To_Access_Conversions (SEA_T);
-      into    : SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (data'Address);
-      got     : Stream_Element_Offset;
-      md5_ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
+      Into    : SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (Data'Address);
+      Got     : Stream_Element_Offset;
+      MD5_Ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
    begin
-      Stream_IO.Open (in_file, Stream_IO.In_File, To_String (file_name));
+      Stream_IO.Open (In_File, Stream_IO.In_File, To_String (File_Name));
       -- read in sample first
-      Stream_IO.Read (in_file, into.all, got);
+      Stream_IO.Read (In_File, Into.all, Got);
 
       -- test for compression magic headers
-      if Integer (got) > xz_magic'Last then
-         if data (1 .. compress_magic'Last) = compress_magic then
-            comp_type := COMPRESS;
-         elsif data (1 .. gzip_magic'Last) = gzip_magic then
-            comp_type := GZIP;
-         elsif data (1 .. bzip2_magic'Last) = bzip2_magic then
-            comp_type := BZIP2;
-         elsif data (1 .. xz_magic'Last) = xz_magic then
-            comp_type := XZ;
+      if Integer (Got) > Xz_Magic'Last then
+         if Data (1 .. Compress_Magic'Last) = Compress_Magic then
+            Compress_Type := COMPRESS;
+         elsif Data (1 .. Gzip_Magic'Last) = Gzip_Magic then
+            Compress_Type := GZIP;
+         elsif Data (1 .. Bzip2_Magic'Last) = Bzip2_Magic then
+            Compress_Type := BZIP2;
+         elsif Data (1 .. Xz_Magic'Last) = Xz_Magic then
+            Compress_Type := XZ;
          end if;
       end if;
-      Put_Line ("compression method " & compress_t'Image (comp_type));
-      if comp_type = NO_COMPRESS then
-         last := Natural (got);
+      Put_Line ("compression method " & Compress_T'Image (Compress_Type));
+      if Compress_Type = NO_COMPRESS then
+         Last := Natural (Got);
          -- Update MD5
-         GNAT.MD5.Update (md5_ctx, into.all (1 .. got));
+         GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
       else
-         Stream_IO.Close (in_file);
-         decompress_file (file_name, temp_name, comp_type);
-         Stream_IO.Open (in_file, Stream_IO.In_File, To_String (temp_name));
-         Stream_IO.Read (in_file, into.all, got);
+         Stream_IO.Close (In_File);
+         Decompress_File (File_Name, Temp_Name, Compress_Type);
+         Stream_IO.Open (In_File, Stream_IO.In_File, To_String (Temp_Name));
+         Stream_IO.Read (In_File, Into.all, Got);
       end if;
 
-      while not Ada.Streams.Stream_IO.End_Of_File (in_file) loop
-         Stream_IO.Read (in_file, into.all, got);
-         last := Natural (got);
+      while not Ada.Streams.Stream_IO.End_Of_File (In_File) loop
+         Stream_IO.Read (In_File, Into.all, Got);
+         Last := Natural (Got);
          -- Update MD5
-         GNAT.MD5.Update (md5_ctx, into.all (1 .. got));
+         GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
       end loop;
-      Stream_IO.Close (in_file);
-      checksum := GNAT.MD5.Digest (md5_ctx);
-   end get_file_md5;
+      Stream_IO.Close (In_File);
+      Checksum := GNAT.MD5.Digest (MD5_Ctx);
+   end Get_File_MD5;
 
    ---------------------------------------------------------------------------
-   procedure load_config (ctx : in out context_t) is
-      data_path        : path_string_t;
-      conf_path        : path_string_t;
-      recent_file_name : path_string_t;
-      config_file_name : path_string_t;
+   procedure Load_Config (ctx : in out Context_T) is
+      Data_Path        : Path_T;
+      Conf_Path        : Path_T;
+      Recent_File_Name : Path_T;
+      Config_File_Name : Path_T;
    begin
       -- form data and config home, follow the xdg guideline
       declare
-         home      : String := Value ("HOME");
-         data_home : String := Value ("XDG_DATA_HOME", home & "/.local/share");
-         conf_home : String := Value ("XDG_CONFIG_HOME", home & "/.config");
+         Home      : String := Value ("HOME");
+         Data_Home : String := Value ("XDG_DATA_HOME", Home & "/.local/share");
+         Conf_Home : String := Value ("XDG_CONFIG_HOME", Home & "/.config");
       begin
-         data_path := To_Unbounded_String (data_home & "/" & prgname);
-         conf_path := To_Unbounded_String (conf_home & "/" & prgname);
+         Data_Path := To_Unbounded_String (Data_Home & "/" & Prg_Name);
+         Conf_Path := To_Unbounded_String (Conf_Home & "/" & Prg_Name);
       end;
       -- make directories
-      Create_Path (To_String (data_path));
-      Create_Path (To_String (conf_path));
+      Create_Path (To_String (Data_Path));
+      Create_Path (To_String (Conf_Path));
 
       -- ok, try forming data and config file path
-      ctx.data_file   := data_path & "/history";
-      ctx.config_file := conf_path & "/config.txt";
-      load_history (ctx);
-      Put_Line ("Got" & Integer'Image (ctx.total_doc) & " entries in history");
-   end load_config;
+      ctx.Data_File   := Data_Path & "/history";
+      ctx.Config_File := Conf_Path & "/config.txt";
+      Load_History (ctx);
+      Put_Line ("Got" & Integer'Image (ctx.Total_Doc) & " entries in history");
+   end Load_Config;
 
    ---------------------------------------------------------------------------
-   procedure save_config (ctx : in context_t) is
+   procedure Save_Config (Ctx : in Context_T) is
    begin
-      if ctx.history_changed then
-         save_history (ctx);
+      if Ctx.History_Changed then
+         Save_History (Ctx);
       end if;
-   end save_config;
+   end Save_Config;
 
    ---------------------------------------------------------------------------
-   procedure load_history (ctx : in out context_t) is
-      in_file   : File_Type;
-      tokens    : Slice_Set;
-      separator : constant String := "|";
-      data_line : Unbounded_String;
+   procedure Load_History (Ctx : in out Context_T) is
+      In_File   : File_Type;
+      Tokens    : Slice_Set;
+      Separator : constant String := "|";
+      Data_Line : Unbounded_String;
    begin
-      Put_Line ("open history file:" & To_String (ctx.data_file));
-      Open (in_file, Ada.Text_IO.In_File, To_String (ctx.data_file));
+      Put_Line ("open history file:" & To_String (Ctx.Data_File));
+      Open (In_File, Ada.Text_IO.In_File, To_String (Ctx.Data_File));
 
-      read_line :
+      Read_Line :
       loop
-         data_line := Trim (Get_Line (in_file), Both);
+         Data_Line := Trim (Get_Line (In_File), Both);
 
          -- skip empty line
-         if Length (data_line) = 0 then
+         if Length (Data_Line) = 0 then
             goto Continue;
          end if;
 
          Put_Line
            ("got a line with" &
-            Integer'Image (Length (data_line)) &
+            Integer'Image (Length (Data_Line)) &
             " characters");
          GNAT.String_Split.Create
-           (S          => tokens,
-            From       => To_String (data_line),
-            Separators => separator,
+           (S          => Tokens,
+            From       => To_String (Data_Line),
+            Separators => Separator,
             Mode       => Multiple);
 
-         if Slice_Count (tokens) > 1 then
+         if Slice_Count (Tokens) > 1 then
             Put_Line
-              ("Token number " & Slice_Number'Image (Slice_Count (tokens)));
-            ctx.total_doc := ctx.total_doc + 1;
+              ("Token number " & Slice_Number'Image (Slice_Count (Tokens)));
+            Ctx.Total_Doc := Ctx.Total_Doc + 1;
          end if;
 
-         for i in 1 .. Slice_Count (tokens) loop
+         for i in 1 .. Slice_Count (Tokens) loop
             case i is
                when 1 =>
-                  ctx.history (ctx.total_doc).checksum := Slice (tokens, i);
+                  Ctx.History (Ctx.Total_Doc).Checksum := Slice (Tokens, i);
                when 2 =>
-                  ctx.history (ctx.total_doc).name :=
-                    To_Unbounded_String (Slice (tokens, i));
+                  Ctx.History (Ctx.Total_Doc).Name :=
+                    To_Unbounded_String (Slice (Tokens, i));
                when 3 =>
-                  ctx.history (ctx.total_doc).cur_page :=
-                    Integer'Value (Slice (tokens, i));
+                  Ctx.History (Ctx.Total_Doc).Cur_Page :=
+                    Integer'Value (Slice (Tokens, i));
                when 4 =>
-                  ctx.history (ctx.total_doc).total_page :=
-                    Integer'Value (Slice (tokens, i));
+                  Ctx.History (Ctx.Total_Doc).Total_Page :=
+                    Integer'Value (Slice (Tokens, i));
                when 5 =>
-                  ctx.history (ctx.total_doc).class :=
-                    doc_class_t'Value (Slice (tokens, i));
+                  Ctx.History (Ctx.Total_Doc).Class :=
+                    Doc_Class_T'Value (Slice (Tokens, i));
                when others =>
                   null; -- ignore any other fields for now
             end case;
@@ -373,44 +373,44 @@ package body Adaview.Config is
 
          <<Continue>>
          null;
-      end loop read_line;
+      end loop Read_Line;
    exception
       when Ada.Text_IO.Name_Error =>
          null; -- ignore Name error
       when Ada.Text_IO.End_Error =>
-         if Is_Open (in_file) then
-            Close (in_file);
+         if Is_Open (In_File) then
+            Close (In_File);
          end if;
       when others =>
          raise;
-   end load_history;
+   end Load_History;
 
    ---------------------------------------------------------------------------
-   procedure save_one_entry (out_file : in File_Type; doc : in doc_t) is
+   procedure Save_One_Entry (Out_File : in File_Type; Doc : in Doc_T) is
    begin
-      Put (out_file, doc.checksum);
-      Put (out_file, "|" & To_String (doc.name));
-      Put (out_file, "|" & Natural'Image (doc.cur_page));
-      Put (out_file, "|" & Natural'Image (doc.total_page));
-      Put (out_file, "|" & doc_class_t'Image (doc.class));
-      New_Line (out_file);
-   end save_one_entry;
+      Put (Out_File, Doc.Checksum);
+      Put (Out_File, "|" & To_String (Doc.Name));
+      Put (Out_File, "|" & Natural'Image (Doc.Cur_Page));
+      Put (Out_File, "|" & Natural'Image (Doc.Total_Page));
+      Put (Out_File, "|" & Doc_Class_T'Image (Doc.Class));
+      New_Line (Out_File);
+   end Save_One_Entry;
 
    ---------------------------------------------------------------------------
-   procedure save_history (ctx : in context_t) is
-      out_file : File_Type;
+   procedure Save_History (Ctx : in Context_T) is
+      Out_File : File_Type;
    begin
-      Put_Line ("save history to " & To_String (ctx.data_file));
-      Create (out_file, Ada.Text_IO.Out_File, To_String (ctx.data_file));
-      if ctx.cur_doc.checksum (1) /= ' ' then
-         save_one_entry (out_file, ctx.cur_doc);
+      Put_Line ("save history to " & To_String (Ctx.Data_File));
+      Create (Out_File, Ada.Text_IO.Out_File, To_String (Ctx.Data_File));
+      if Ctx.Cur_Doc.Checksum (1) /= ' ' then
+         Save_One_Entry (Out_File, Ctx.Cur_Doc);
       end if;
-      for i in 1 .. ctx.total_doc loop
-         if ctx.cur_doc.checksum /= ctx.history (i).checksum then
-            save_one_entry (out_file, ctx.history (i));
+      for i in 1 .. Ctx.Total_Doc loop
+         if Ctx.Cur_Doc.Checksum /= Ctx.History (i).Checksum then
+            Save_One_Entry (Out_File, Ctx.History (i));
          end if;
       end loop;
-      Close (out_file);
-   end save_history;
+      Close (Out_File);
+   end Save_History;
 
 end Adaview.Config;
