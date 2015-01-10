@@ -358,14 +358,14 @@ package body Adaview.Config is
                   Ctx.History (Ctx.Total_Doc).Name :=
                     To_Unbounded_String (Slice (Tokens, i));
                when 3 =>
-                  Ctx.History (Ctx.Total_Doc).Cur_Page :=
-                    Integer'Value (Slice (Tokens, i));
-               when 4 =>
-                  Ctx.History (Ctx.Total_Doc).Total_Page :=
-                    Integer'Value (Slice (Tokens, i));
-               when 5 =>
                   Ctx.History (Ctx.Total_Doc).Class :=
                     Doc_Class_T'Value (Slice (Tokens, i));
+               when 4 =>
+                  Ctx.History (Ctx.Total_Doc).Cur_Page :=
+                    Integer'Value (Slice (Tokens, i));
+               when 5 =>
+                  Ctx.History (Ctx.Total_Doc).Total_Page :=
+                    Integer'Value (Slice (Tokens, i));
                when others =>
                   null; -- ignore any other fields for now
             end case;
@@ -390,9 +390,10 @@ package body Adaview.Config is
    begin
       Put (Out_File, Doc.Checksum);
       Put (Out_File, "|" & To_String (Doc.Name));
+      Put (Out_File, "|" & Doc_Class_T'Image (Doc.Class));
       Put (Out_File, "|" & Natural'Image (Doc.Cur_Page));
       Put (Out_File, "|" & Natural'Image (Doc.Total_Page));
-      Put (Out_File, "|" & Doc_Class_T'Image (Doc.Class));
+
       New_Line (Out_File);
    end Save_One_Entry;
 
