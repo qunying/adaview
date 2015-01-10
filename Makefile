@@ -8,15 +8,6 @@ localedir :=${prefix}/share/locale
 DESTDIR :=
 
 all:
-	@if ! [ -d obj ]; then \
-	    mkdir obj; \
-	fi
-	@if ! [ -d gsapi/obj ]; then \
-	    mkdir gsapi/obj; \
-	fi
-	@if ! [ -d gsapi/lib ]; then \
-	    mkdir gsapi/lib; \
-	fi
 	@./generate_locale_path.sh "${localedir}"
 	@gnatmake -d -Padaview.gpr
 
