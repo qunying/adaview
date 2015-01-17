@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: adaview\n"
 "Report-Msgid-Bugs-To: zhu.qunying@gmail.com\n"
-"POT-Creation-Date: 2015-01-17 07:38-0800\n"
-"PO-Revision-Date: 2015-01-17 07:39-0800\n"
+"POT-Creation-Date: 2015-01-17 08:00-0800\n"
+"PO-Revision-Date: 2015-01-17 08:01-0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
@@ -39,8 +39,8 @@ msgid "A PostScript/PDF viewer."
 msgstr "PostScript/PDF 浏览器"
 
 #: adaview-version.adb
-msgid "Copyright (C) 2014 Zhu Qun-Ying"
-msgstr "著作版权所有 (C) 2014 朱群英"
+msgid "Copyright (C) 2014-2015 Zhu Qun-Ying"
+msgstr "著作版权所有 (C) 2014-2015 朱群英"
 
 #: adaview-version.adb
 msgid ""
@@ -66,6 +66,10 @@ msgstr ""
 "\n"
 "您应已收到附随于本程序的GNU通用公共授权的副本; 如果没有, 请看\n"
 "<http://www.gnu.org/licenses/>。\n"
+
+#: string_format.adb
+msgid "Elements array is empty."
+msgstr "Elements 是空数组。"
 
 #: string_format.adb
 msgid "Format string has %1, larger than maximum index %2 of Elements."
