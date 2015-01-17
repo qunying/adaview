@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2015 Zhu Qun-Ying.                                          --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,20 +19,17 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-package body String_Format is
+with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+with Ada.Strings;       use Ada.Strings;
+with Gtkada.Intl;       use Gtkada.Intl;
 
-   procedure Increment (Num : in out Positive) is
-   begin
-      Num := Num + 1;
-   end Increment;
-   pragma Inline (Increment);
+package body String_Format is
 
    ---------------------------------------------------------------------------
    function Format_String
      (Format   : String;
-      Elements : UString_Array) return String
-   is
-      I              : Positive         := Format'First;
+      Elements : UString_Array) return String is
+      K              : Positive         := Format'First;
       Last_Digit_Pos : Positive;
       Idx            : Positive;
       Result         : Unbounded_String := +"";
@@ -44,9 +41,9 @@ package body String_Format is
 
       loop
          -- check if we have %
-         if Format (I) = Esc_Char and I < Format'Last then
-            Last_Digit_Pos := I;
-            for J in I + 1 .. Format'Last loop
+         if Format (K) = Esc_Char and K < Format'Last then
+            Last_Digit_Pos := K;
+            for J in K + 1 .. Format'Last loop
                -- check numbers follow the % character
                if Character'Pos (Format (J)) >= Character'Pos ('0') and
                  Character'Pos (Format (J)) <= Character'Pos ('9')
@@ -56,26 +53,29 @@ package body String_Format is
                   exit;
                end if;
             end loop;
-            if Last_Digit_Pos > I then
-               Idx := Positive'Value (Format (I + 1 .. Last_Digit_Pos));
+            if Last_Digit_Pos > K then
+               Idx := Positive'Value (Format (K + 1 .. Last_Digit_Pos));
                if Idx > Elements'Last then
                   raise Invalid_Index
-                    with "Max index of Elements is" &
-                    Positive'Image (Elements'Last) &
-                    ", found" &
-                    Positive'Image (Idx) &
-                    " in format string.";
+                    with Fmt
+                      (-("Format string has %1, larger than maximum "
+                          & "index %2 of Elements."),
+                       (+Format (K .. Last_Digit_Pos),
+                        +Trim (Positive'Image (Elements'Last), Left)));
                end if;
                Append (Result, Elements (Idx));
-               I := Last_Digit_Pos;
-            else -- only a single % is found, keep it
+               K := Last_Digit_Pos;
+            elsif Format (K + 1) = '%' then -- found %%, output one only
+               Append (Result, Esc_Char);
+               K := K + 1;
+            else
                Append (Result, Esc_Char);
             end if;
          else
-            Append (Result, Format (I));
+            Append (Result, Format (K));
          end if;
-         Increment (I);
-         exit when I > Format'Last;
+         K := K + 1;
+         exit when K > Format'Last;
       end loop;
 
       return To_String (Result);

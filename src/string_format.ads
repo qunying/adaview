@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2015 Zhu Qun-Ying.                                          --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -38,5 +38,16 @@ package String_Format is
      (Format   : String;
       Elements : UString_Array) return String;
    -- Format a string using position holder %1 %2 and the correspoding
-   -- Element in the Elemetns
+   -- Element in the Elements. To output % character, if no digit follow the
+   -- %, then % will be output, othewise %% is needed to escape %.
+   --
+   -- When Elements is null, exception No_Element will be raised
+   -- When position holder's index is large than Elements'Last,
+   -- exception Invalid_Index will be raised.
+
+   function Fmt
+     (Format   : String;
+      Elements : UString_Array) return String renames
+     Format_String;
+
 end String_Format;

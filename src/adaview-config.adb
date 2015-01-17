@@ -65,6 +65,10 @@ package body Adaview.Config is
    package ACL renames Ada.Characters.Latin_1;
 
    ---------------------------------------------------------------------------
+   function Sys (Arg : char_array) return Integer;
+      pragma Import (C, Sys, "system");
+
+   ---------------------------------------------------------------------------
    function To_Address (C : Gboolean_Access) return System.Address is
       function Convert is new Ada.Unchecked_Conversion
         (Gboolean_Access,
@@ -75,11 +79,9 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure Print_Short_Version is
+
    begin
-      Put_Line
-        (Format_String
-           ("%1 %2 - %3",
-            (+Prg_Name, +Adaview.Version.Text, +Get_Description)));
+      Put_Line (Prg_Name & Adaview.Version.Text & " - " & Get_Description);
       Put_Line (Get_Copyright);
    end Print_Short_Version;
 
@@ -171,16 +173,13 @@ package body Adaview.Config is
       Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
       Base          : String     := Base_Name (To_String (File_Name));
-      Template_Name : char_array := To_C ("/tmp/adaview-" & Base & ".XXXXXX");
+      Template_Name : char_array := To_C ("/tmp/adaview_" & Base & ".XXXXXX");
       CMD_Ptr       : System.OS_Lib.String_Access;
       Arguments     : Argument_List (1 .. 2);
       Fd            : File_Descriptor;
       Ret           : Integer;
       function C_Mkstemp (filename : char_array) return File_Descriptor;
       pragma Import (C, C_Mkstemp, "mkstemp");
-
-      function Sys (Arg : char_array) return Integer;
-      pragma Import (C, Sys, "system");
    begin
       Fd := C_Mkstemp (Template_Name);
       if Fd = -1 then
@@ -231,7 +230,7 @@ package body Adaview.Config is
       Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
 
       Bzip2_Magic : constant Byte_String_T := (16#42#, 16#5a#, 16#68#);
-      --"BZh"
+      -- "BZh"
 
       Xz_Magic : constant Byte_String_T :=
         (16#FD#, 16#37#, 16#7a#, 16#58#, 16#5A#, 16#00#);

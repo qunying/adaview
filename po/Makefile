@@ -8,7 +8,7 @@ all:
 	@$(MAKE) refresh
 	@$(MAKE) ${LANGS}.gmo
 refresh:
-	@./build_skeleton.pl ${prg} 2014 "Zhu qun-Ying" "zhu.qunying@gmail.com" > ${prg}.pot
+	@./build_skeleton.pl ${prg} 2014-2015 "Zhu qun-Ying" "zhu.qunying@gmail.com" > ${prg}.pot
 	@${foreach lang,${LANGS}, \
 	if [ -f ${lang}.po ]; then true; else ${CP} ${prg}.pot ${lang}.po; fi; \
 	msgmerge --no-wrap --update ${lang}.po ${prg}.pot} >& /dev/null
