@@ -45,6 +45,7 @@ with Glib;              use Glib;
 
 with Adaview.Version; use Adaview.Version;
 with System.OS_Lib;   use System.OS_Lib;
+with String_Format;   use String_Format;
 
 package body Adaview.Config is
 
@@ -75,8 +76,10 @@ package body Adaview.Config is
    ---------------------------------------------------------------------------
    procedure Print_Short_Version is
    begin
-      Put (Prg_Name & " " & Adaview.Version.Text & " - ");
-      Put_Line (Get_Description);
+      Put_Line
+        (Format_String
+           ("%1 %2 - %3",
+            (+Prg_Name, +Adaview.Version.Text, +Get_Description)));
       Put_Line (Get_Copyright);
    end Print_Short_Version;
 
@@ -164,10 +167,10 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure Decompress_File
-     (File_Name : in     Unbounded_String;
-      Temp_Name : in out Unbounded_String;
+     (File_Name     : in     Unbounded_String;
+      Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
-      Base          : String := Base_Name (To_String (File_Name));
+      Base          : String     := Base_Name (To_String (File_Name));
       Template_Name : char_array := To_C ("/tmp/adaview-" & Base & ".XXXXXX");
       CMD_Ptr       : System.OS_Lib.String_Access;
       Arguments     : Argument_List (1 .. 2);
@@ -187,8 +190,7 @@ package body Adaview.Config is
 
       Put_Line ("got temp file " & To_Ada (Template_Name));
       -- remove the trailling NUL character
-      Temp_Name :=
-        To_Unbounded_String (To_Ada (Template_Name));
+      Temp_Name := +To_Ada (Template_Name);
       case Compress_Type is
          when COMPRESS | GZIP =>
             CMD_Ptr := Cmd_Gzip'Access;
@@ -293,8 +295,8 @@ package body Adaview.Config is
          Data_Home : String := Value ("XDG_DATA_HOME", Home & "/.local/share");
          Conf_Home : String := Value ("XDG_CONFIG_HOME", Home & "/.config");
       begin
-         Data_Path := To_Unbounded_String (Data_Home & "/" & Prg_Name);
-         Conf_Path := To_Unbounded_String (Conf_Home & "/" & Prg_Name);
+         Data_Path := +(Data_Home & "/" & Prg_Name);
+         Conf_Path := +(Conf_Home & "/" & Prg_Name);
       end;
       -- make directories
       Create_Path (To_String (Data_Path));
@@ -355,8 +357,7 @@ package body Adaview.Config is
                when 1 =>
                   Ctx.History (Ctx.Total_Doc).Checksum := Slice (Tokens, i);
                when 2 =>
-                  Ctx.History (Ctx.Total_Doc).Name :=
-                    To_Unbounded_String (Slice (Tokens, i));
+                  Ctx.History (Ctx.Total_Doc).Name := +Slice (Tokens, i);
                when 3 =>
                   Ctx.History (Ctx.Total_Doc).Class :=
                     Doc_Class_T'Value (Slice (Tokens, i));

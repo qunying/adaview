@@ -20,7 +20,7 @@ function generate_locale_path_ads() {
 -- Generated at $gen_time
 
 package Adaview.Locale is
-   path : constant String := "${localedir}";
+   Path : constant String := "${localedir}";
 end Adaview.Locale;
 EOF
 }
