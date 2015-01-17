@@ -29,14 +29,14 @@ package body String_Format is
    function Format_String
      (Format   : String;
       Elements : UString_Array) return String is
-      K              : Positive         := Format'First;
       Last_Digit_Pos : Positive;
       Idx            : Positive;
-      Result         : Unbounded_String := +"";
-      Esc_Char       : Character        := '%';
+      K              : Positive           := Format'First;
+      Result         : Unbounded_String   := +"";
+      Esc_Char       : constant Character := '%';
    begin
       if Elements = Null_UString_Array then
-         raise No_Element;
+         raise No_Element with -"Elements array is empty.";
       end if;
 
       loop
@@ -58,18 +58,19 @@ package body String_Format is
                if Idx > Elements'Last then
                   raise Invalid_Index
                     with Fmt
-                      (-("Format string has %1, larger than maximum "
-                          & "index %2 of Elements."),
+                      (-
+                       ("Format string has %1, larger than maximum " &
+                        "index %2 of Elements."),
                        (+Format (K .. Last_Digit_Pos),
                         +Trim (Positive'Image (Elements'Last), Left)));
                end if;
                Append (Result, Elements (Idx));
                K := Last_Digit_Pos;
-            elsif Format (K + 1) = '%' then -- found %%, output one only
-               Append (Result, Esc_Char);
-               K := K + 1;
             else
                Append (Result, Esc_Char);
+               if Format (K + 1) = '%' then -- found %%, output one only
+                  K := K + 1;
+               end if;
             end if;
          else
             Append (Result, Format (K));
