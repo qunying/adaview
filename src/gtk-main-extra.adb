@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Gtk.Main.Extra - A child package to add gtk_init_with_args()              --
 --                  and gtk_get_option_group ()                              --
--- Copyright (c) 2014, Zhu Qun-Ying.                                         --
+-- Copyright (c) 2014-2015 Zhu Qun-Ying.                                       --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --

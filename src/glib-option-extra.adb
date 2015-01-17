@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Glib.Option.Extra - A child package to add g_option_context_parse()      --
+-- Glib.Option.Extra - A child package to add g_option_context_parse()       --
 -- Copyright (c) 2014, Zhu Qun-Ying.                                         --
 --                                                                           --
 -- This file is part of Adaview.                                             --

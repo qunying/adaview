@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- GhostScript API Ada binding                                               --
 --                                                                           --
--- Copyright (c) 2014 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- * Public API for Ghostscript interpreter                                  --
 -- * Current problems:                                                       --
