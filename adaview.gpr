@@ -11,28 +11,14 @@ project Adaview is
       ("static", "relocatable");
    Library_Type : Gtkada_Kind_Type := external ("LIBRARY_TYPE", "relocatable");
 
-   case Library_Type is
-
-      when "static" =>
-
-      when "relocatable" =>
-         for Exec_Dir use "./";
-   end case;
+   for Exec_Dir use "./";
 
    package Linker is
       for Default_Switches ("ada") use ("-lgs");
    end Linker;
 
    package Pretty_Printer is
-
-      case Library_Type is
-
-         when "static" =>
-            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
-
-         when "relocatable" =>
-            for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
-      end case;
+      for Default_Switches ("ada") use ("-l2", "-c4", "-W8", "--no-separate-is", "-c0");
    end Pretty_Printer;
 
    package Builder is
