@@ -47,6 +47,8 @@ with Adaview.Version; use Adaview.Version;
 with System.OS_Lib;   use System.OS_Lib;
 with String_Format;   use String_Format;
 
+with Adaview.Debug;
+
 package body Adaview.Config is
 
    Opts_Ctx      : Goption_Context;
@@ -63,6 +65,8 @@ package body Adaview.Config is
 
    type Gboolean_Access is access all Gboolean;
    package ACL renames Ada.Characters.Latin_1;
+
+   package Dbg renames Adaview.Debug;
 
    ---------------------------------------------------------------------------
    function Sys (Arg : char_array) return Integer;
@@ -204,7 +208,7 @@ package body Adaview.Config is
       Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
                         & " > " & To_String (Temp_Name)));
       --!pp on
-      Put_Line ("decompress result: " & Integer'Image (Ret));
+      Dbg.Put_Line ("decompress result: " & Integer'Image (Ret), Dbg.Trace);
       -- decompress file have zero length, consider failed.
       if Size (To_String (Temp_Name)) = 0 then
          raise Invalid_file
@@ -259,7 +263,8 @@ package body Adaview.Config is
             Compress_Type := XZ;
          end if;
       end if;
-      Put_Line ("compression method " & Compress_T'Image (Compress_Type));
+      Dbg.Put_Line ("compression method " & Compress_T'Image (Compress_Type),
+                    Dbg.Trace);
       if Compress_Type = NO_COMPRESS then
          Last := Natural (Got);
          -- Update MD5
@@ -305,7 +310,7 @@ package body Adaview.Config is
       ctx.Data_File   := Data_Path & "/history";
       ctx.Config_File := Conf_Path & "/config.txt";
       Load_History (ctx);
-      Put_Line ("Got" & Integer'Image (ctx.Total_Doc) & " entries in history");
+      Dbg.Put_Line ("Got" & Integer'Image (ctx.Total_Doc) & " entries in history", Dbg.Trace);
    end Load_Config;
 
    ---------------------------------------------------------------------------
@@ -335,10 +340,11 @@ package body Adaview.Config is
             goto Continue;
          end if;
 
-         Put_Line
+         Dbg.Put_Line
            ("got a line with" &
             Integer'Image (Length (Data_Line)) &
-            " characters");
+              " characters",
+           Dbg.Trace);
          GNAT.String_Split.Create
            (S          => Tokens,
             From       => To_String (Data_Line),
@@ -346,8 +352,6 @@ package body Adaview.Config is
             Mode       => Multiple);
 
          if Slice_Count (Tokens) > 1 then
-            Put_Line
-              ("Token number " & Slice_Number'Image (Slice_Count (Tokens)));
             Ctx.Total_Doc := Ctx.Total_Doc + 1;
          end if;
 
@@ -404,7 +408,7 @@ package body Adaview.Config is
    procedure Save_History (Ctx : in Context_T) is
       Out_File : File_Type;
    begin
-      Put_Line ("save history to " & To_String (Ctx.Data_File));
+      Dbg.Put_Line ("save history to " & To_String (Ctx.Data_File), Dbg.Trace);
       Create (Out_File, Ada.Text_IO.Out_File, To_String (Ctx.Data_File));
       if Ctx.Cur_Doc.Checksum (1) /= ' ' then
          Save_One_Entry (Out_File, Ctx.Cur_Doc);
