@@ -366,6 +366,9 @@ package body Adaview.Config is
                when 5 =>
                   Ctx.History (Ctx.Total_Doc).Total_Page :=
                     Integer'Value (Slice (Tokens, i));
+               when 6 =>
+                  Ctx.History (Ctx.Total_Doc).Backend :=
+                    Backend_T'Value (Slice (Tokens, i));
                when others =>
                   null; -- ignore any other fields for now
             end case;
@@ -393,7 +396,7 @@ package body Adaview.Config is
       Put (Out_File, "|" & Doc_Class_T'Image (Doc.Class));
       Put (Out_File, "|" & Natural'Image (Doc.Cur_Page));
       Put (Out_File, "|" & Natural'Image (Doc.Total_Page));
-
+      Put (Out_File, "|" & Backend_T'Image (Doc.Backend));
       New_Line (Out_File);
    end Save_One_Entry;
 
