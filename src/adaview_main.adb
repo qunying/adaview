@@ -42,7 +42,7 @@ with Adaview.Config;
 with Adaview.Locale;
 
 procedure Adaview_main is
-   GS_Version  : aliased Revision_T;
+   GS_Rev      : aliased Revision_T;
    Instance    : aliased Instance_T;
    Ret         : Code_T;
    Doc_Ctx     : Adaview.Config.Context_T;
@@ -115,18 +115,16 @@ begin
       Doc_Ctx.History_Changed := True;
    end if;
 
-   if Revision (GS_Version'Access, GS_Version'Size / 8) > 0 then
+   if Revision (GS_Rev'Access, GS_Rev'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
       return;
    end if;
 
    --   Gtk.Main.Init;
-   Put (Get_Product (GS_Version) & ", ");
-   Put_Line (Get_Copyright (GS_Version));
-   Put ("Version " & Get_Revision_Num_String (GS_Version));
-   Put (" - ");
-   Put (Get_Revision_Date (GS_Version), 1);
-   New_Line;
+   Put (Get_Product (GS_Rev) & ", ");
+   Put_Line (Get_Copyright (GS_Rev));
+   Put ("Version " & Get_Revision_Num_String (GS_Rev));
+   Put_Line (" (" & Get_Revision_Date_String (GS_Rev) & ")");
 
    Ret := New_Instance (Instance'Access, Null_Address);
    if Ret < 0 then

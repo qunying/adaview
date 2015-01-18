@@ -62,12 +62,14 @@ package GS.API is
    -- return revision number
 
    function Get_Revision_Num_String (Rev : Revision_T) return String;
-   pragma Inline (Get_Revision_Num_String);
    -- return major revision in string format
 
    function Get_Revision_Date (Rev : Revision_T) return Long_Integer;
    pragma Inline (Get_Revision_Date);
    -- return revision date
+
+   function Get_Revision_Date_String (Rev : Revision_T) return String;
+   -- return revision date in string
 
    type Instance_T is limited private;
 

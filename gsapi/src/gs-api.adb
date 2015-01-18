@@ -54,10 +54,12 @@ package body GS.API is
       Minor : Long_Integer := Long_Integer (Rev.Revision) rem 100;
    begin
       if Minor < 10 then
-         return Trim (Long_Integer'Image (Major), Left) & ".0" &
+         return Trim (Long_Integer'Image (Major), Left) &
+           ".0" &
            Trim (Long_Integer'Image (Minor), Left);
       else
-         return Trim (Long_Integer'Image (Major), Left) & "." &
+         return Trim (Long_Integer'Image (Major), Left) &
+           "." &
            Trim (Long_Integer'Image (Minor), Left);
       end if;
    end Get_Revision_Num_String;
@@ -68,4 +70,16 @@ package body GS.API is
       return Long_Integer (Rev.Revision_Date);
    end Get_Revision_Date;
 
+   function Get_Revision_Date_String (Rev : Revision_T) return String is
+      Year  : Long_Integer := Long_Integer (Rev.Revision_Date) / 10_000;
+      Month : Long_Integer :=
+        Long_Integer (Rev.Revision_Date) rem 10_000 / 100;
+      Date : Long_Integer := Long_Integer (Rev.Revision_Date) - Year * 10_000 - Month * 100;
+   begin
+      return Trim (Long_Integer'Image (Year), Left) &
+        "-" &
+        Trim (Long_Integer'Image (Month), Left) &
+        "-" &
+        Trim (Long_Integer'Image (Date), Left);
+   end Get_Revision_Date_String;
 end GS.API;
