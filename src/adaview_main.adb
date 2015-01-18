@@ -20,7 +20,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;              use Ada.Text_IO;
-with Ada.Long_Integer_Text_IO; use Ada.Long_Integer_Text_IO;
 with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
 with Ada.Command_Line;         use Ada.Command_Line;
 with Ada.Directories;          use Ada.Directories;
@@ -35,7 +34,6 @@ with GS.API;    use GS.API;
 with GS.Errors; use GS.Errors;
 
 with Gtkada.Intl;    use Gtkada.Intl;
-with Gtk.Main.Extra; use Gtk.Main.Extra;
 
 with Adaview.Version;
 with Adaview.Config;
@@ -74,7 +72,7 @@ begin
          Doc_Ctx.Cur_Doc.Name := To_Unbounded_String (Argument (1));
       else
          declare
-            cwd : String := POSIX.To_String (Get_Working_Directory);
+            cwd : constant String := POSIX.To_String (Get_Working_Directory);
          begin
             Doc_Ctx.Cur_Doc.Name :=
               To_Unbounded_String (cwd & "/" & Argument (1));

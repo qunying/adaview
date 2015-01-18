@@ -22,7 +22,7 @@ with Ada.Characters.Latin_1;
 
 package body Adaview.Version is
 
-   LF : Character := Ada.Characters.Latin_1.LF;
+   LF : constant Character := Ada.Characters.Latin_1.LF;
 
    ---------------------------------------------------------------------------
    function Get_Description return  Glib.UTF8_String is

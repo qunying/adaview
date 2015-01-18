@@ -10,7 +10,6 @@ project Adaview is
    type Gtkada_Kind_Type is
       ("static", "relocatable");
    Library_Type : Gtkada_Kind_Type := external ("LIBRARY_TYPE", "relocatable");
-
    for Exec_Dir use "./";
 
    package Linker is
@@ -38,7 +37,7 @@ project Adaview is
             for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
 
          when "relocatable" =>
-            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnat05", "-gnatyabhiknprstux");
+            for Default_Switches ("ada") use ("-gnatwafu", "-g", "-gnatf", "-gnatyabhiknprstux", "-gnat12");
       end case;
    end Compiler;
 

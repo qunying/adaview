@@ -21,13 +21,9 @@
 
 -- Define adaview's configuration and command line arguments
 
-with Ada.Strings.Unbounded;
-
-with GNAT.MD5;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 package Adaview.Config is
-
-   use Ada.Strings.Unbounded;
 
    MD5_Length                 : constant := 32;
    Max_File_Path_Length       : constant := 512;
@@ -41,14 +37,14 @@ package Adaview.Config is
    type Byte_String_T is array (Positive range <>) of Byte_T;
    subtype Path_T is Unbounded_String;
 
-   type Backend_T is (GHOSTSCRIPT, MUPDF);
+   type Backend_T is (Ghostscript, muPDF);
    type Doc_Class_T is (UNKNOWN, PS, PDF);
 
    type Doc_T is record
       Name       : Path_T := To_Unbounded_String ("");
       Temp_Name  : Path_T := To_Unbounded_String ("");
       DCS_Name   : Path_T := To_Unbounded_String ("");
-      Backend    : Backend_T := GHOSTSCRIPT;
+      Backend    : Backend_T := Ghostscript;
       Checksum   : String (1 .. MD5_Length);
       Class      : Doc_Class_T   := UNKNOWN;
       Cur_Page   : Natural       := 0;

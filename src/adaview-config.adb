@@ -25,7 +25,6 @@ with Ada.Environment_Variables;     use Ada.Environment_Variables;
 with Ada.Strings;                   use Ada.Strings;
 with Ada.Strings.Unbounded;         use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
-with Ada.Exceptions;                use Ada.Exceptions;
 
 with GNAT.String_Split; use GNAT.String_Split;
 
@@ -48,6 +47,7 @@ with System.OS_Lib;   use System.OS_Lib;
 with String_Format;   use String_Format;
 
 with Adaview.Debug;
+with GNAT.MD5;
 
 package body Adaview.Config is
 
@@ -102,7 +102,7 @@ package body Adaview.Config is
       Print_Short_Version;
       Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
       declare
-         Help_Msg : String  := Get_Help (Opts_Ctx, Main_Help, null);
+         Help_Msg : constant String  := Get_Help (Opts_Ctx, Main_Help, null);
          Idx      : Positive;
          Count    : Natural := 0;
       begin
@@ -176,10 +176,9 @@ package body Adaview.Config is
      (File_Name     : in     Unbounded_String;
       Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
-      Base          : String     := Base_Name (To_String (File_Name));
-      Template_Name : char_array := To_C ("/tmp/adaview_" & Base & ".XXXXXX");
+      Base          : constant String     := Base_Name (To_String (File_Name));
+      Template_Name : constant char_array := To_C ("/tmp/adaview_" & Base & ".XXXXXX");
       CMD_Ptr       : System.OS_Lib.String_Access;
-      Arguments     : Argument_List (1 .. 2);
       Fd            : File_Descriptor;
       Ret           : Integer;
       function C_Mkstemp (filename : char_array) return File_Descriptor;
@@ -191,7 +190,7 @@ package body Adaview.Config is
       end if;
       Close (Fd);
 
-      Put_Line ("got temp file " & To_Ada (Template_Name));
+      Dbg.Put_Line ("got temp file " & To_Ada (Template_Name), Dbg.Trace);
       -- remove the trailling NUL character
       Temp_Name := +To_Ada (Template_Name);
       case Compress_Type is
@@ -229,7 +228,6 @@ package body Adaview.Config is
       Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
 
-      Last           : Natural;
       Compress_Magic : constant Byte_String_T := (16#1F#, 16#9d#);
       Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
 
@@ -243,7 +241,7 @@ package body Adaview.Config is
 
       subtype SEA_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new System.Address_To_Access_Conversions (SEA_T);
-      Into    : SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (Data'Address);
+      Into    : constant SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (Data'Address);
       Got     : Stream_Element_Offset;
       MD5_Ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
    begin
@@ -266,7 +264,6 @@ package body Adaview.Config is
       Dbg.Put_Line ("compression method " & Compress_T'Image (Compress_Type),
                     Dbg.Trace);
       if Compress_Type = NO_COMPRESS then
-         Last := Natural (Got);
          -- Update MD5
          GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
       else
@@ -278,7 +275,6 @@ package body Adaview.Config is
 
       while not Ada.Streams.Stream_IO.End_Of_File (In_File) loop
          Stream_IO.Read (In_File, Into.all, Got);
-         Last := Natural (Got);
          -- Update MD5
          GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
       end loop;
@@ -290,14 +286,12 @@ package body Adaview.Config is
    procedure Load_Config (ctx : in out Context_T) is
       Data_Path        : Path_T;
       Conf_Path        : Path_T;
-      Recent_File_Name : Path_T;
-      Config_File_Name : Path_T;
    begin
       -- form data and config home, follow the xdg guideline
       declare
-         Home      : String := Value ("HOME");
-         Data_Home : String := Value ("XDG_DATA_HOME", Home & "/.local/share");
-         Conf_Home : String := Value ("XDG_CONFIG_HOME", Home & "/.config");
+         Home      : constant String := Value ("HOME");
+         Data_Home : constant String := Value ("XDG_DATA_HOME", Home & "/.local/share");
+         Conf_Home : constant String := Value ("XDG_CONFIG_HOME", Home & "/.config");
       begin
          Data_Path := +(Data_Home & "/" & Prg_Name);
          Conf_Path := +(Conf_Home & "/" & Prg_Name);
