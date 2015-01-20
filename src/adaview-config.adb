@@ -23,8 +23,8 @@ with Interfaces.C.Strings;          use Interfaces.C.Strings;
 with Ada.Directories;               use Ada.Directories;
 with Ada.Environment_Variables;     use Ada.Environment_Variables;
 with Ada.Strings;                   use Ada.Strings;
-with Ada.Strings.Unbounded;         use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
+use Ada.Strings.Unbounded;
 
 with GNAT.String_Split; use GNAT.String_Split;
 
@@ -70,7 +70,7 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    function Sys (Arg : char_array) return Integer;
-      pragma Import (C, Sys, "system");
+   pragma Import (C, Sys, "system");
 
    ---------------------------------------------------------------------------
    function To_Address (C : Gboolean_Access) return System.Address is
@@ -85,7 +85,8 @@ package body Adaview.Config is
    procedure Print_Short_Version is
 
    begin
-      Put_Line (Prg_Name & Adaview.Version.Text & " - " & Get_Description);
+      Put_Line
+        (Prg_Name & " " & Adaview.Version.Text & " - " & Get_Description);
       Put_Line (Get_Copyright);
    end Print_Short_Version;
 
@@ -102,9 +103,9 @@ package body Adaview.Config is
       Print_Short_Version;
       Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
       declare
-         Help_Msg : constant String  := Get_Help (Opts_Ctx, Main_Help, null);
+         Help_Msg : constant String := Get_Help (Opts_Ctx, Main_Help, null);
          Idx      : Positive;
-         Count    : Natural := 0;
+         Count    : Natural         := 0;
       begin
          -- skip the first few lines to use our own format
          for i in Help_Msg'Range loop
@@ -177,20 +178,21 @@ package body Adaview.Config is
       Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
       Base          : constant String     := Base_Name (To_String (File_Name));
-      Template_Name : constant char_array := To_C ("/tmp/adaview_" & Base & ".XXXXXX");
-      CMD_Ptr       : System.OS_Lib.String_Access;
-      Fd            : File_Descriptor;
-      Ret           : Integer;
+      Template_Name : constant char_array :=
+        To_C ("/tmp/adaview_" & Base & ".XXXXXX");
+      CMD_Ptr : System.OS_Lib.String_Access;
+      Fd      : File_Descriptor;
+      Ret     : Integer;
       function C_Mkstemp (filename : char_array) return File_Descriptor;
       pragma Import (C, C_Mkstemp, "mkstemp");
    begin
       Fd := C_Mkstemp (Template_Name);
       if Fd = -1 then
-         raise No_temp_file;
+         raise No_Temp_File;
       end if;
       Close (Fd);
 
-      Dbg.Put_Line ("got temp file " & To_Ada (Template_Name), Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "got temp file " & To_Ada (Template_Name));
       -- remove the trailling NUL character
       Temp_Name := +To_Ada (Template_Name);
       case Compress_Type is
@@ -207,10 +209,10 @@ package body Adaview.Config is
       Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
                         & " > " & To_String (Temp_Name)));
       --!pp on
-      Dbg.Put_Line ("decompress result: " & Integer'Image (Ret), Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
       if Size (To_String (Temp_Name)) = 0 then
-         raise Invalid_file
+         raise Invalid_File
            with "file " & To_String (File_Name) & " is invalid.";
       end if;
    end Decompress_File;
@@ -241,9 +243,10 @@ package body Adaview.Config is
 
       subtype SEA_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new System.Address_To_Access_Conversions (SEA_T);
-      Into    : constant SEA_Addr.Object_Pointer := SEA_Addr.To_Pointer (Data'Address);
+      Into : constant SEA_Addr.Object_Pointer :=
+        SEA_Addr.To_Pointer (Data'Address);
       Got     : Stream_Element_Offset;
-      MD5_Ctx : GNAT.MD5.Context        := GNAT.MD5.Initial_Context;
+      MD5_Ctx : GNAT.MD5.Context := GNAT.MD5.Initial_Context;
    begin
       Stream_IO.Open (In_File, Stream_IO.In_File, To_String (File_Name));
       -- read in sample first
@@ -261,8 +264,9 @@ package body Adaview.Config is
             Compress_Type := XZ;
          end if;
       end if;
-      Dbg.Put_Line ("compression method " & Compress_T'Image (Compress_Type),
-                    Dbg.Trace);
+      Dbg.Put_Line
+        (Dbg.Trace,
+         "compression method " & Compress_T'Image (Compress_Type));
       if Compress_Type = NO_COMPRESS then
          -- Update MD5
          GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
@@ -284,14 +288,16 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure Load_Config (ctx : in out Context_T) is
-      Data_Path        : Path_T;
-      Conf_Path        : Path_T;
+      Data_Path : Path_T;
+      Conf_Path : Path_T;
    begin
       -- form data and config home, follow the xdg guideline
       declare
          Home      : constant String := Value ("HOME");
-         Data_Home : constant String := Value ("XDG_DATA_HOME", Home & "/.local/share");
-         Conf_Home : constant String := Value ("XDG_CONFIG_HOME", Home & "/.config");
+         Data_Home : constant String :=
+           Value ("XDG_DATA_HOME", Home & "/.local/share");
+         Conf_Home : constant String :=
+           Value ("XDG_CONFIG_HOME", Home & "/.config");
       begin
          Data_Path := +(Data_Home & "/" & Prg_Name);
          Conf_Path := +(Conf_Home & "/" & Prg_Name);
@@ -304,7 +310,9 @@ package body Adaview.Config is
       ctx.Data_File   := Data_Path & "/history";
       ctx.Config_File := Conf_Path & "/config.txt";
       Load_History (ctx);
-      Dbg.Put_Line ("Got" & Integer'Image (ctx.Total_Doc) & " entries in history", Dbg.Trace);
+      Dbg.Put_Line
+        (Dbg.Trace,
+         "Got" & Integer'Image (ctx.Total_Doc) & " entries in history");
    end Load_Config;
 
    ---------------------------------------------------------------------------
@@ -335,10 +343,10 @@ package body Adaview.Config is
          end if;
 
          Dbg.Put_Line
-           ("got a line with" &
+           (Dbg.Trace,
+            "got a line with" &
             Integer'Image (Length (Data_Line)) &
-              " characters",
-           Dbg.Trace);
+            " characters");
          GNAT.String_Split.Create
            (S          => Tokens,
             From       => To_String (Data_Line),
@@ -382,8 +390,6 @@ package body Adaview.Config is
          if Is_Open (In_File) then
             Close (In_File);
          end if;
-      when others =>
-         raise;
    end Load_History;
 
    ---------------------------------------------------------------------------
@@ -402,7 +408,7 @@ package body Adaview.Config is
    procedure Save_History (Ctx : in Context_T) is
       Out_File : File_Type;
    begin
-      Dbg.Put_Line ("save history to " & To_String (Ctx.Data_File), Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "save history to " & To_String (Ctx.Data_File));
       Create (Out_File, Ada.Text_IO.Out_File, To_String (Ctx.Data_File));
       if Ctx.Cur_Doc.Checksum (1) /= ' ' then
          Save_One_Entry (Out_File, Ctx.Cur_Doc);

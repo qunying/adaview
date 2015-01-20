@@ -79,13 +79,13 @@ begin
          end;
       end if;
 
-      Dbg.Put_Line ("Got document: " & To_String (Doc_Ctx.Cur_Doc.Name), Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "Got document: " & To_String (Doc_Ctx.Cur_Doc.Name));
       Doc_Ctx.Cur_Doc.Temp_Name := Doc_Ctx.Cur_Doc.Name;
       Adaview.Config.Get_File_MD5
         (Doc_Ctx.Cur_Doc.Name,
          Doc_Ctx.Cur_Doc.Temp_Name,
          Doc_Ctx.Cur_Doc.Checksum);
-      Dbg.Put_Line ("md5: " & Doc_Ctx.Cur_Doc.Checksum, Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "md5: " & Doc_Ctx.Cur_Doc.Checksum);
 
       if Argument_Count = 2 then
          Doc_Ctx.Cur_Doc.Cur_Page := Integer'Value (Argument (2));
@@ -94,7 +94,7 @@ begin
       for i in 1 .. Doc_Ctx.Total_Doc loop
          if Doc_Ctx.Cur_Doc.Checksum = Doc_Ctx.History (i).Checksum then
             -- we found an entry
-            Dbg.Put_Line ("we got an entry in the history.", Dbg.Trace);
+            Dbg.Put_Line (Dbg.Trace, "we got an entry in the history.");
             Matched_Idx := i;
             if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.History (i).Name then
                Doc_Ctx.History (i).Name := Doc_Ctx.Cur_Doc.Name;
@@ -112,7 +112,7 @@ begin
          end if;
       end loop;
    else
-      Dbg.Put_Line ("No more argument", Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "No more argument");
    end if;
 
    if Matched_Idx = 0 and Argument_Count > 0 then
@@ -125,10 +125,10 @@ begin
    end if;
 
    --   Gtk.Main.Init;
-   Dbg.Put (Get_Product (GS_Rev) & ", ", Dbg.Trace);
-   Dbg.Put_Line (Get_Copyright (GS_Rev), Dbg.Trace);
-   Dbg.Put ("Version " & Get_Revision_Num_String (GS_Rev), Dbg.Trace);
-   Dbg.Put_Line (" (" & Get_Revision_Date_String (GS_Rev) & ")", Dbg.Trace);
+   Dbg.Put (Dbg.Trace, Get_Product (GS_Rev) & ", ");
+   Dbg.Put_Line (Dbg.Trace, Get_Copyright (GS_Rev));
+   Dbg.Put (Dbg.Trace, "Version " & Get_Revision_Num_String (GS_Rev));
+   Dbg.Put_Line (Dbg.Trace, " (" & Get_Revision_Date_String (GS_Rev) & ")");
 
    Ret := New_Instance (Instance'Access, Null_Address);
    if Ret < 0 then
@@ -137,10 +137,10 @@ begin
       Put (Integer (Ret));
       New_Line;
    else
-      Dbg.Put_Line ("Got instance.", Dbg.Trace);
+      Dbg.Put_Line (Dbg.Trace, "Got instance.");
    end if;
 
-   Dbg.Put_Line ("delete instance", Dbg.Trace);
+   Dbg.Put_Line (Dbg.Trace, "delete instance");
    Delete_Instance (Instance);
    Adaview.Config.Save_Config (Doc_Ctx);
    if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.Cur_Doc.Temp_Name then

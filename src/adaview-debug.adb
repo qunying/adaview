@@ -35,7 +35,7 @@ package body Adaview.Debug is
    end Get_Flag;
 
    ---------------------------------------------------------------------------
-   procedure Put (Msg : String; In_Flag : Flag) is
+   procedure Put (In_Flag : Flag; Msg : String) is
    begin
       if Cur_Flag /= None and then Cur_Flag >= In_Flag then
          Ada.Text_IO.Put (Msg);
@@ -43,7 +43,7 @@ package body Adaview.Debug is
    end Put;
 
    ---------------------------------------------------------------------------
-   procedure Put_Line (Msg : String; In_Flag : Flag) is
+   procedure Put_Line (In_Flag : Flag; Msg : String) is
    begin
       if Cur_Flag /= None and then Cur_Flag >= In_Flag then
          Ada.Text_IO.Put_Line (Msg);

@@ -74,7 +74,7 @@ package body GS.API is
       Year  : Long_Integer := Long_Integer (Rev.Revision_Date) / 10_000;
       Month : Long_Integer :=
         Long_Integer (Rev.Revision_Date) rem 10_000 / 100;
-      Date : Long_Integer := Long_Integer (Rev.Revision_Date) - Year * 10_000 - Month * 100;
+      Date  : Long_Integer := Long_Integer (Rev.Revision_Date) rem 100;
    begin
       return Trim (Long_Integer'Image (Year), Left) &
         "-" &

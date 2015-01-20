@@ -28,10 +28,12 @@ package Adaview.Config is
    MD5_Length                 : constant := 32;
    Max_File_Path_Length       : constant := 512;
    Max_Recent_Document_Number : constant := 10;
-   -- store only 10 recent documents, may change to configuratble
+
+   --!pp off
    Parameter_Error : exception;
-   No_temp_file : exception;
-   Invalid_file : exception;
+   No_Temp_File    : exception;
+   Invalid_File    : exception;
+   --!pp on
 
    type Byte_T is mod 2**8;
    type Byte_String_T is array (Positive range <>) of Byte_T;
@@ -41,14 +43,14 @@ package Adaview.Config is
    type Doc_Class_T is (UNKNOWN, PS, PDF);
 
    type Doc_T is record
-      Name       : Path_T := To_Unbounded_String ("");
-      Temp_Name  : Path_T := To_Unbounded_String ("");
-      DCS_Name   : Path_T := To_Unbounded_String ("");
-      Backend    : Backend_T := Ghostscript;
+      Name       : Path_T      := To_Unbounded_String ("");
+      Temp_Name  : Path_T      := To_Unbounded_String ("");
+      DCS_Name   : Path_T      := To_Unbounded_String ("");
+      Backend    : Backend_T   := Ghostscript;
       Checksum   : String (1 .. MD5_Length);
-      Class      : Doc_Class_T   := UNKNOWN;
-      Cur_Page   : Natural       := 0;
-      Total_Page : Natural       := 0;
+      Class      : Doc_Class_T := UNKNOWN;
+      Cur_Page   : Natural     := 0;
+      Total_Page : Natural     := 0;
    end record;
 
    type Doc_History_T is array (Positive range <>) of Doc_T;

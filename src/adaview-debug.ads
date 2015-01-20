@@ -28,9 +28,9 @@ package Adaview.Debug is
 
    function Get_Flag return Flag;
 
-   procedure Put (Msg : String; In_Flag : Flag);
+   procedure Put (In_Flag : Flag; Msg : String);
 
-   procedure Put_Line (Msg : String; In_Flag : Flag);
+   procedure Put_Line (In_Flag : Flag; Msg : String);
 
    procedure New_Line
      (In_Flag : Flag;
