@@ -70,6 +70,7 @@ package body GS.API is
       return Long_Integer (Rev.Revision_Date);
    end Get_Revision_Date;
 
+   ---------------------------------------------------------------------------
    function Get_Revision_Date_String (Rev : Revision_T) return String is
       Year  : Long_Integer := Long_Integer (Rev.Revision_Date) / 10_000;
       Month : Long_Integer :=
