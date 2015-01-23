@@ -19,10 +19,14 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Adaview.Config; use Adaview.Config;
+-- using routings from psscan from libspectre
+-- and add back handling of PDF from gv/psscan
 
-package Adaview.PS is
+package body Adaview.PS is
 
-   procedure Scan (Ctx : in out Context_T);
+   procedure Scan (Ctx : in out Context_T) is
+   begin
+      null;
+   end Scan;
 
 end Adaview.PS;
