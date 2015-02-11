@@ -81,7 +81,4 @@ package Adaview.Config is
 
    procedure Save_Config (Ctx : in Context_T);
 
-private
-   procedure Load_History (Ctx : in out Context_T);
-   procedure Save_History (Ctx : in Context_T);
 end Adaview.Config;

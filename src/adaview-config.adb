@@ -68,57 +68,22 @@ package body Adaview.Config is
 
    package Dbg renames Adaview.Debug;
 
+   function To_Address (C : Gboolean_Access) return System.Address;
+   procedure Print_Short_Version;
+   procedure Print_Version;
+   procedure Usage (Opts_Ctx : in Goption_Context; Main_Help : Boolean);
+   procedure Decompress_File
+     (File_Name     : in     Unbounded_String;
+      Temp_Name     : in out Unbounded_String;
+      Compress_Type : in     Compress_T);
+   procedure Save_One_Entry (Out_File : in File_Type; Doc : in Doc_T);
+
+   procedure Load_History (Ctx : in out Context_T);
+   procedure Save_History (Ctx : in Context_T);
+
    ---------------------------------------------------------------------------
    function Sys (Arg : char_array) return Integer;
    pragma Import (C, Sys, "system");
-
-   ---------------------------------------------------------------------------
-   function To_Address (C : Gboolean_Access) return System.Address is
-      function Convert is new Ada.Unchecked_Conversion
-        (Gboolean_Access,
-         Glib.C_Proxy);
-   begin
-      return Glib.To_Address (Convert (C));
-   end To_Address;
-
-   ---------------------------------------------------------------------------
-   procedure Print_Short_Version is
-
-   begin
-      Put_Line
-        (Prg_Name & " " & Adaview.Version.Text & " - " & Get_Description);
-      Put_Line (Get_Copyright);
-   end Print_Short_Version;
-
-   procedure Print_Version is
-   begin
-      Print_Short_Version;
-      New_Line;
-      Put_Line (Get_License);
-   end Print_Version;
-
-   ---------------------------------------------------------------------------
-   procedure Usage (Opts_Ctx : in Goption_Context; Main_Help : Boolean) is
-   begin
-      Print_Short_Version;
-      Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
-      declare
-         Help_Msg : constant String := Get_Help (Opts_Ctx, Main_Help, null);
-         Idx      : Positive;
-         Count    : Natural         := 0;
-      begin
-         -- skip the first few lines to use our own format
-         for i in Help_Msg'Range loop
-            if Help_Msg (i) = ACL.LF then
-               Count := Count + 1;
-               Idx   := i;
-            end if;
-            exit when Count = 2;
-         end loop;
-         Put_Line (Help_Msg (Idx + 1 .. Help_Msg'Last));
-      end;
-      System.OS_Lib.OS_Exit (0);
-   end Usage;
 
    ---------------------------------------------------------------------------
    procedure Process_Options is
@@ -171,51 +136,6 @@ package body Adaview.Config is
       end loop;
       Free (Opts_Ctx);
    end Process_Options;
-
-   ---------------------------------------------------------------------------
-   procedure Decompress_File
-     (File_Name     : in     Unbounded_String;
-      Temp_Name     : in out Unbounded_String;
-      Compress_Type : in     Compress_T) is
-      Base          : constant String     := Base_Name (To_String (File_Name));
-      Template_Name : constant char_array :=
-        To_C ("/tmp/adaview_" & Base & ".XXXXXX");
-      CMD_Ptr : System.OS_Lib.String_Access;
-      Fd      : File_Descriptor;
-      Ret     : Integer;
-      function C_Mkstemp (filename : char_array) return File_Descriptor;
-      pragma Import (C, C_Mkstemp, "mkstemp");
-   begin
-      Fd := C_Mkstemp (Template_Name);
-      if Fd = -1 then
-         raise No_Temp_File;
-      end if;
-      Close (Fd);
-
-      Dbg.Put_Line (Dbg.Trace, "got temp file " & To_Ada (Template_Name));
-      -- remove the trailling NUL character
-      Temp_Name := +To_Ada (Template_Name);
-      case Compress_Type is
-         when COMPRESS | GZIP =>
-            CMD_Ptr := Cmd_Gzip'Access;
-         when BZIP2 =>
-            CMD_Ptr := Cmd_Bzip2'Access;
-         when XZ =>
-            CMD_Ptr := Cmd_Xz'Access;
-         when others =>
-            null;
-      end case;
-      --!pp off
-      Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
-                        & " > " & To_String (Temp_Name)));
-      --!pp on
-      Dbg.Put_Line (Dbg.Trace, "decompress result: " & Integer'Image (Ret));
-      -- decompress file have zero length, consider failed.
-      if Size (To_String (Temp_Name)) = 0 then
-         raise Invalid_File
-           with "file " & To_String (File_Name) & " is invalid.";
-      end if;
-   end Decompress_File;
 
    ---------------------------------------------------------------------------
    procedure Get_File_MD5
@@ -324,6 +244,51 @@ package body Adaview.Config is
    end Save_Config;
 
    ---------------------------------------------------------------------------
+   procedure Decompress_File
+     (File_Name     : in     Unbounded_String;
+      Temp_Name     : in out Unbounded_String;
+      Compress_Type : in     Compress_T) is
+      Base          : constant String     := Base_Name (To_String (File_Name));
+      Template_Name : constant char_array :=
+        To_C ("/tmp/adaview_" & Base & ".XXXXXX");
+      CMD_Ptr : System.OS_Lib.String_Access;
+      Fd      : File_Descriptor;
+      Ret     : Integer;
+      function C_Mkstemp (filename : char_array) return File_Descriptor;
+      pragma Import (C, C_Mkstemp, "mkstemp");
+   begin
+      Fd := C_Mkstemp (Template_Name);
+      if Fd = -1 then
+         raise No_Temp_File;
+      end if;
+      Close (Fd);
+
+      Dbg.Put_Line (Dbg.Trace, "got temp file " & To_Ada (Template_Name));
+      -- remove the trailling NUL character
+      Temp_Name := +To_Ada (Template_Name);
+      case Compress_Type is
+         when COMPRESS | GZIP =>
+            CMD_Ptr := Cmd_Gzip'Access;
+         when BZIP2 =>
+            CMD_Ptr := Cmd_Bzip2'Access;
+         when XZ =>
+            CMD_Ptr := Cmd_Xz'Access;
+         when others =>
+            null;
+      end case;
+      --!pp off
+      Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
+                        & " > " & To_String (Temp_Name)));
+      --!pp on
+      Dbg.Put_Line (Dbg.Trace, "decompress result: " & Integer'Image (Ret));
+      -- decompress file have zero length, consider failed.
+      if Size (To_String (Temp_Name)) = 0 then
+         raise Invalid_File
+           with "file " & To_String (File_Name) & " is invalid.";
+      end if;
+   end Decompress_File;
+
+   ---------------------------------------------------------------------------
    procedure Load_History (Ctx : in out Context_T) is
       In_File   : File_Type;
       Tokens    : Slice_Set;
@@ -421,4 +386,52 @@ package body Adaview.Config is
       Close (Out_File);
    end Save_History;
 
+   ---------------------------------------------------------------------------
+   function To_Address (C : Gboolean_Access) return System.Address is
+      function Convert is new Ada.Unchecked_Conversion
+        (Gboolean_Access,
+         Glib.C_Proxy);
+   begin
+      return Glib.To_Address (Convert (C));
+   end To_Address;
+
+   ---------------------------------------------------------------------------
+   procedure Print_Short_Version is
+
+   begin
+      Put_Line
+        (Prg_Name & " " & Adaview.Version.Text & " - " & Get_Description);
+      Put_Line (Get_Copyright);
+   end Print_Short_Version;
+
+   ---------------------------------------------------------------------------
+   procedure Print_Version is
+   begin
+      Print_Short_Version;
+      New_Line;
+      Put_Line (Get_License);
+   end Print_Version;
+
+   ---------------------------------------------------------------------------
+   procedure Usage (Opts_Ctx : in Goption_Context; Main_Help : Boolean) is
+   begin
+      Print_Short_Version;
+      Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
+      declare
+         Help_Msg : constant String := Get_Help (Opts_Ctx, Main_Help, null);
+         Idx      : Positive;
+         Count    : Natural         := 0;
+      begin
+         -- skip the first few lines to use our own format
+         for i in Help_Msg'Range loop
+            if Help_Msg (i) = ACL.LF then
+               Count := Count + 1;
+               Idx   := i;
+            end if;
+            exit when Count = 2;
+         end loop;
+         Put_Line (Help_Msg (Idx + 1 .. Help_Msg'Last));
+      end;
+      System.OS_Lib.OS_Exit (0);
+   end Usage;
 end Adaview.Config;

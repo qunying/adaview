@@ -39,6 +39,7 @@ with Adaview.Version;
 with Adaview.Config;
 with Adaview.Locale;
 with Adaview.Debug;
+with Adaview.PS;
 
 procedure Adaview_main is
    GS_Rev      : aliased Revision_T;
@@ -118,6 +119,8 @@ begin
    if Matched_Idx = 0 and Argument_Count > 0 then
       Doc_Ctx.History_Changed := True;
    end if;
+
+   Adaview.PS.Scan (Doc_Ctx);
 
    if Revision (GS_Rev'Access, GS_Rev'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");

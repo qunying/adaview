@@ -10,7 +10,7 @@ DESTDIR :=
 
 all:
 	@./generate_locale_path.sh "${localedir}"
-	@gnatmake -d -Padaview.gpr
+	@gprbuild -d -Padaview.gpr
 
 clean:
 	@echo "Cleaning build trees"

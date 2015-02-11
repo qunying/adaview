@@ -38,18 +38,8 @@ package body Adaview.PS is
       Status     : Boolean := True; -- True for OK, False for failed
    end record;
 
-   ---------------------------------------------------------------------------
-   procedure IO_Init (File_Name : String, File : in out File_Data_T) is
-   begin
-      File.File := Open_Read (File_Name);
-      File.File_Size := Ada.Directories.Size (File_Name);
-   end IO_Init;
-
-   ---------------------------------------------------------------------------
-   function Read_Line (File : File_Data_T) return Boolean is
-   begin
-      null;
-   end Read_line;
+   procedure IO_Init (File_Name : String; File : in out File_Data_T);
+   function Read_Line (File : File_Data_T) return Boolean;
 
    ---------------------------------------------------------------------------
    procedure Scan (Ctx : in out Context_T) is
@@ -62,9 +52,25 @@ package body Adaview.PS is
          IO_Init (To_String (Ctx.Cur_Doc.Temp_Name), File);
       end if;
 
-      Read_Line (File);
+      if Read_Line (File) then
+         null;
+      end if;
 
       Close (File.File);
    end Scan;
+
+   ---------------------------------------------------------------------------
+   procedure IO_Init (File_Name : String; File : in out File_Data_T) is
+   begin
+      File.File := Open_Read (File_Name);
+      File.File_Size := Ada.Directories.Size (File_Name);
+   end IO_Init;
+
+   ---------------------------------------------------------------------------
+   function Read_Line (File : File_Data_T) return Boolean is
+      Ret : Boolean := False;
+   begin
+      return Ret;
+   end Read_Line;
 
 end Adaview.PS;
