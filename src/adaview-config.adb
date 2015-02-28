@@ -45,18 +45,18 @@ with Glib;              use Glib;
 with Adaview.Version; use Adaview.Version;
 with System.OS_Lib;   use System.OS_Lib;
 with String_Format;   use String_Format;
-
 with Adaview.Debug;
 with GNAT.MD5;
 
 package body Adaview.Config is
 
    Opts_Ctx      : Goption_Context;
-   Opts          : GOption_Entry_Array (1 .. 4);
+   Opts          : GOption_Entry_Array (1 .. 5);
    Gtk_Opts_Grp  : GOption_Group;
    Show_Version  : aliased Gboolean;
    Show_Help     : aliased Gboolean;
    Show_Help_All : aliased Gboolean;
+   Debug_Level   : aliased Integer;
    Cmd_Gzip      : aliased String := "gzip";
    Cmd_Bzip2     : aliased String := "bzip2";
    Cmd_Xz        : aliased String := "xz";
@@ -65,7 +65,7 @@ package body Adaview.Config is
 
    type Gboolean_Access is access all Gboolean;
    package ACL renames Ada.Characters.Latin_1;
-
+   package Sys_Addr is new System.Address_To_Access_Conversions (Integer);
    package Dbg renames Adaview.Debug;
 
    function To_Address (C : Gboolean_Access) return System.Address;
@@ -108,6 +108,12 @@ package body Adaview.Config is
       Opts (3).Arg         := G_Option_Arg_None;
       Opts (3).Arg_Data    := To_Address (Show_Help_All'Access);
 
+      Opts (4).Long_Name   := New_String ("debug");
+      Opts (4).Short_Name  := 'd';
+      Opts (4).Description := New_String (-"Set debug level (0 ~ 8)");
+      Opts (4).Arg         := G_Option_Arg_Int;
+      Opts (4).Arg_Data    := Sys_Addr.To_Address (Debug_Level'Access);
+
       Opts_Ctx := G_New;
       Add_Main_Entries (Opts_Ctx, Opts);
       Gtk_Opts_Grp := Get_Option_Group (False);
@@ -129,6 +135,18 @@ package body Adaview.Config is
       if Show_Help_All /= 0 then
          Usage (Opts_Ctx, False);
       end if;
+
+      if Debug_Level < 0 or Debug_Level > 8 then
+         Put_Line (-"Error: debug level could only be 0 ~ 8.");
+         raise Parameter_Error;
+      end if;
+
+      case Debug_Level is
+         when 0 => Dbg.Set_Flag (Dbg.None);
+         when 8 => Dbg.Set_Flag (Dbg.Trace);
+         when others => Dbg.Set_Flag (Dbg.Info);
+      end case;
+
       -- free the opts and context
       for i in Opts'Range loop
          Free (Opts (i).Long_Name);
