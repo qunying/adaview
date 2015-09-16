@@ -24,7 +24,7 @@ with Ada.Directories;               use Ada.Directories;
 with Ada.Environment_Variables;     use Ada.Environment_Variables;
 with Ada.Strings;                   use Ada.Strings;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
-use Ada.Strings.Unbounded;
+with Ada.Strings.Fixed;             use Ada.Strings.Fixed;
 
 with GNAT.String_Split; use GNAT.String_Split;
 
@@ -43,7 +43,7 @@ with Glib.Error;        use Glib.Error;
 with Glib;              use Glib;
 
 with Adaview.Version; use Adaview.Version;
-with System.OS_Lib;   use System.OS_Lib;
+with GNAT.OS_Lib;     use GNAT.OS_Lib;
 with String_Format;   use String_Format;
 with Adaview.Debug;
 with GNAT.MD5;
@@ -60,6 +60,15 @@ package body Adaview.Config is
    Cmd_Gzip      : aliased String := "gzip";
    Cmd_Bzip2     : aliased String := "bzip2";
    Cmd_Xz        : aliased String := "xz";
+
+   Entry_Mark      : constant String := "[File]";
+   Checksum_Mark   : constant String := "Checksum";
+   MD5_Method      : constant String := "MD5";
+   Path_Mark       : constant String := "Path";
+   Kind_Mark       : constant String := "Kind";
+   Cur_Page_Mark   : constant String := "Cur_Page";
+   Total_Page_Mark : constant String := "Total_Page";
+   Backend_Mark    : constant String := "Backend";
 
    type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
 
@@ -126,7 +135,7 @@ package body Adaview.Config is
       end if;
       if Show_Version /= 0 then
          Print_Version;
-         System.OS_Lib.OS_Exit (0);
+         GNAT.OS_Lib.OS_Exit (0);
       end if;
       if Show_Help /= 0 then
          Usage (Opts_Ctx, True);
@@ -142,9 +151,12 @@ package body Adaview.Config is
       end if;
 
       case Debug_Level is
-         when 0 => Dbg.Set_Flag (Dbg.None);
-         when 8 => Dbg.Set_Flag (Dbg.Trace);
-         when others => Dbg.Set_Flag (Dbg.Info);
+         when 0 =>
+            Dbg.Set_Flag (Dbg.None);
+         when 8 =>
+            Dbg.Set_Flag (Dbg.Trace);
+         when others =>
+            Dbg.Set_Flag (Dbg.Info);
       end case;
 
       -- free the opts and context
@@ -168,16 +180,20 @@ package body Adaview.Config is
       Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
 
+      --!pp off
       Compress_Magic : constant Byte_String_T := (16#1F#, 16#9d#);
       Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
-
-      Bzip2_Magic : constant Byte_String_T := (16#42#, 16#5a#, 16#68#);
-      -- "BZh"
-
-      Xz_Magic : constant Byte_String_T :=
-        (16#FD#, 16#37#, 16#7a#, 16#58#, 16#5A#, 16#00#);
-      -- {0xFD, '7', 'z', 'X', 'Z', 0x00}
-      Compress_Type : Compress_T := NO_COMPRESS;
+      Bzip2_Magic    : constant Byte_String_T := (Character'Pos ('B'),
+                                                  Character'Pos ('Z'),
+                                                  Character'Pos ('h'));
+      Xz_Magic       : constant Byte_String_T := (16#FD#,
+                                                  Character'Pos ('7'),
+                                                  Character'Pos ('z'),
+                                                  Character'Pos ('X'),
+                                                  Character'Pos ('Z'),
+                                                  16#00#);
+      Compress_Type  : Compress_T := NO_COMPRESS;
+      --!pp on
 
       subtype SEA_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new System.Address_To_Access_Conversions (SEA_T);
@@ -205,15 +221,14 @@ package body Adaview.Config is
       Dbg.Put_Line
         (Dbg.Trace,
          "compression method " & Compress_T'Image (Compress_Type));
-      if Compress_Type = NO_COMPRESS then
-         -- Update MD5
-         GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
-      else
+      if Compress_Type /= NO_COMPRESS then
          Stream_IO.Close (In_File);
          Decompress_File (File_Name, Temp_Name, Compress_Type);
          Stream_IO.Open (In_File, Stream_IO.In_File, To_String (Temp_Name));
          Stream_IO.Read (In_File, Into.all, Got);
       end if;
+      -- Update MD5
+      GNAT.MD5.Update (MD5_Ctx, Into.all (1 .. Got));
 
       while not Ada.Streams.Stream_IO.End_Of_File (In_File) loop
          Stream_IO.Read (In_File, Into.all, Got);
@@ -269,7 +284,7 @@ package body Adaview.Config is
       Base          : constant String     := Base_Name (To_String (File_Name));
       Template_Name : constant char_array :=
         To_C ("/tmp/adaview_" & Base & ".XXXXXX");
-      CMD_Ptr : System.OS_Lib.String_Access;
+      CMD_Ptr : GNAT.OS_Lib.String_Access;
       Fd      : File_Descriptor;
       Ret     : Integer;
       function C_Mkstemp (filename : char_array) return File_Descriptor;
@@ -310,7 +325,7 @@ package body Adaview.Config is
    procedure Load_History (Ctx : in out Context_T) is
       In_File   : File_Type;
       Tokens    : Slice_Set;
-      Separator : constant String := "|";
+      Separator : constant String := ":";
       Data_Line : Unbounded_String;
    begin
       Put_Line ("open history file:" & To_String (Ctx.Data_File));
@@ -330,39 +345,48 @@ package body Adaview.Config is
             "got a line with" &
             Integer'Image (Length (Data_Line)) &
             " characters");
+         if Length (Data_Line) = Entry_Mark'Length
+           and then To_String (Data_Line) = Entry_Mark
+         then
+            Ctx.Total_Doc := Ctx.Total_Doc + 1;
+            goto Continue;
+         end if;
+
          GNAT.String_Split.Create
            (S          => Tokens,
             From       => To_String (Data_Line),
             Separators => Separator,
             Mode       => Multiple);
-
-         if Slice_Count (Tokens) > 1 then
-            Ctx.Total_Doc := Ctx.Total_Doc + 1;
-         end if;
-
-         for i in 1 .. Slice_Count (Tokens) loop
-            case i is
-               when 1 =>
-                  Ctx.History (Ctx.Total_Doc).Checksum := Slice (Tokens, i);
-               when 2 =>
-                  Ctx.History (Ctx.Total_Doc).Name := +Slice (Tokens, i);
-               when 3 =>
-                  Ctx.History (Ctx.Total_Doc).Class :=
-                    Doc_Class_T'Value (Slice (Tokens, i));
-               when 4 =>
-                  Ctx.History (Ctx.Total_Doc).Cur_Page :=
-                    Integer'Value (Slice (Tokens, i));
-               when 5 =>
-                  Ctx.History (Ctx.Total_Doc).Total_Page :=
-                    Integer'Value (Slice (Tokens, i));
-               when 6 =>
-                  Ctx.History (Ctx.Total_Doc).Backend :=
-                    Backend_T'Value (Slice (Tokens, i));
-               when others =>
-                  null; -- ignore any other fields for now
-            end case;
-         end loop;
-
+         declare
+            Mark : constant String := Slice (Tokens, 1);
+         begin
+            if Mark = Path_Mark then
+               Ctx.History (Ctx.Total_Doc).Name := +Slice (Tokens, 2);
+            elsif Mark = Checksum_Mark then
+               if Slice_Count (Tokens) /= 3 then
+                  Dbg.Put_Line (Dbg.Trace, "Wrong checksum line.");
+                  goto Continue;
+               end if;
+               if Slice (Tokens, 2) = MD5_Method then
+                  Ctx.History (Ctx.Total_Doc).Checksum := Trim (Slice (Tokens, 3), Both);
+               else
+                  Dbg.Put_Line (Dbg.Trace, "Wrong checksum method.");
+                  goto Continue;
+               end if;
+            elsif Mark = Kind_Mark then
+               Ctx.History (Ctx.Total_Doc).Kind :=
+                 Doc_Kind_T'Value (Slice (Tokens, 2));
+            elsif Mark = Cur_Page_Mark then
+               Ctx.History (Ctx.Total_Doc).Cur_Page :=
+                 Integer'Value (Slice (Tokens, 2));
+            elsif Mark = Total_Page_Mark then
+               Ctx.History (Ctx.Total_Doc).Total_Page :=
+                 Integer'Value (Slice (Tokens, 2));
+            elsif Mark = Backend_Mark then
+               Ctx.History (Ctx.Total_Doc).Backend :=
+                 Backend_T'Value (Slice (Tokens, 2));
+            end if;
+         end;
          <<Continue>>
          null;
       end loop Read_Line;
@@ -378,12 +402,17 @@ package body Adaview.Config is
    ---------------------------------------------------------------------------
    procedure Save_One_Entry (Out_File : in File_Type; Doc : in Doc_T) is
    begin
-      Put (Out_File, Doc.Checksum);
-      Put (Out_File, "|" & To_String (Doc.Name));
-      Put (Out_File, "|" & Doc_Class_T'Image (Doc.Class));
-      Put (Out_File, "|" & Natural'Image (Doc.Cur_Page));
-      Put (Out_File, "|" & Natural'Image (Doc.Total_Page));
-      Put (Out_File, "|" & Backend_T'Image (Doc.Backend));
+      Put_Line (Out_File, Entry_Mark);
+      Put_Line
+        (Out_File,
+         Checksum_Mark & ":" & MD5_Method & ":" & Doc.Checksum);
+      Put_Line (Out_File, Path_Mark & ":" & To_String (Doc.Name));
+      Put_Line (Out_File, Kind_Mark & ":" & Doc_Kind_T'Image (Doc.Kind));
+      Put_Line (Out_File, Cur_Page_Mark & ":" & Natural'Image (Doc.Cur_Page));
+      Put_Line
+        (Out_File,
+         Total_Page_Mark & ":" & Natural'Image (Doc.Total_Page));
+      Put_Line (Out_File, Backend_Mark & ":" & Backend_T'Image (Doc.Backend));
       New_Line (Out_File);
    end Save_One_Entry;
 
@@ -433,7 +462,6 @@ package body Adaview.Config is
    ---------------------------------------------------------------------------
    procedure Usage (Opts_Ctx : in Goption_Context; Main_Help : Boolean) is
    begin
-      Print_Short_Version;
       Put_Line (-"Usage: adaview [OPTIONS...] [file [page]]");
       declare
          Help_Msg : constant String := Get_Help (Opts_Ctx, Main_Help, null);
@@ -450,6 +478,6 @@ package body Adaview.Config is
          end loop;
          Put_Line (Help_Msg (Idx + 1 .. Help_Msg'Last));
       end;
-      System.OS_Lib.OS_Exit (0);
+      GNAT.OS_Lib.OS_Exit (0);
    end Usage;
 end Adaview.Config;

@@ -31,7 +31,6 @@ package body Adaview.PS is
       File         : Mapped_File;
       Size         : File_Size;
       Page_Size    : Integer;
-      Request_Size : Integer;
 
       Str     : Str_Access;
       Str_End : Integer   := 0;

@@ -40,17 +40,17 @@ package Adaview.Config is
    subtype Path_T is Unbounded_String;
 
    type Backend_T is (Ghostscript, muPDF);
-   type Doc_Class_T is (UNKNOWN, PS, PDF);
+   type Doc_Kind_T is (UNKNOWN, PS, PDF);
 
    type Doc_T is record
-      Name       : Path_T      := To_Unbounded_String ("");
-      Temp_Name  : Path_T      := To_Unbounded_String ("");
-      DCS_Name   : Path_T      := To_Unbounded_String ("");
-      Backend    : Backend_T   := Ghostscript;
+      Name       : Path_T     := To_Unbounded_String ("");
+      Temp_Name  : Path_T     := To_Unbounded_String ("");
+      DCS_Name   : Path_T     := To_Unbounded_String ("");
+      Backend    : Backend_T  := Ghostscript;
       Checksum   : String (1 .. MD5_Length);
-      Class      : Doc_Class_T := UNKNOWN;
-      Cur_Page   : Natural     := 0;
-      Total_Page : Natural     := 0;
+      Kind       : Doc_Kind_T := UNKNOWN;
+      Cur_Page   : Natural    := 0;
+      Total_Page : Natural    := 0;
    end record;
 
    type Doc_History_T is array (Positive range <>) of Doc_T;

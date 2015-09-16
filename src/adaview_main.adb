@@ -19,11 +19,11 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;              use Ada.Text_IO;
-with Ada.Integer_Text_IO;      use Ada.Integer_Text_IO;
-with Ada.Command_Line;         use Ada.Command_Line;
-with Ada.Directories;          use Ada.Directories;
-with Ada.Strings.Unbounded;    use Ada.Strings.Unbounded;
+with Ada.Text_IO;           use Ada.Text_IO;
+with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
+with Ada.Command_Line;      use Ada.Command_Line;
+with Ada.Directories;       use Ada.Directories;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
@@ -33,13 +33,13 @@ with POSIX.Process_Environment; use POSIX.Process_Environment;
 with GS.API;    use GS.API;
 with GS.Errors; use GS.Errors;
 
-with Gtkada.Intl;    use Gtkada.Intl;
+with Gtkada.Intl; use Gtkada.Intl;
 
 with Adaview.Version;
 with Adaview.Config;
 with Adaview.Locale;
 with Adaview.Debug;
-with Adaview.PS;
+--with Adaview.PS;
 
 procedure Adaview_main is
    GS_Rev      : aliased Revision_T;
@@ -80,7 +80,9 @@ begin
          end;
       end if;
 
-      Dbg.Put_Line (Dbg.Trace, "Got document: " & To_String (Doc_Ctx.Cur_Doc.Name));
+      Dbg.Put_Line
+        (Dbg.Trace,
+         "Got document: " & To_String (Doc_Ctx.Cur_Doc.Name));
       Doc_Ctx.Cur_Doc.Temp_Name := Doc_Ctx.Cur_Doc.Name;
       Adaview.Config.Get_File_MD5
         (Doc_Ctx.Cur_Doc.Name,
@@ -99,7 +101,7 @@ begin
             Matched_Idx := i;
             if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.History (i).Name then
                Doc_Ctx.History (i).Name := Doc_Ctx.Cur_Doc.Name;
-               Doc_Ctx.Cur_Doc.Class    := Doc_Ctx.History (i).Class;
+               Doc_Ctx.Cur_Doc.Kind     := Doc_Ctx.History (i).Kind;
                if Doc_Ctx.Cur_Doc.Cur_Page = 0 then
                   Doc_Ctx.Cur_Doc.Cur_Page := Doc_Ctx.History (i).Cur_Page;
                end if;
@@ -120,7 +122,7 @@ begin
       Doc_Ctx.History_Changed := True;
    end if;
 
-   Adaview.PS.Scan (Doc_Ctx);
+--   Adaview.PS.Scan (Doc_Ctx);
 
    if Revision (GS_Rev'Access, GS_Rev'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
