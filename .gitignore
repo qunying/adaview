@@ -4,3 +4,11 @@
 *.npp
 *.gmo
 adaview-locale.ads
+*/obj/*
+obj/*
+*~
+*.swp
+*.a
+.metadata
+adaview-loc.xml
+adaview

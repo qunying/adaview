@@ -31,7 +31,6 @@ package Adaview.Config is
 
    --!pp off
    Parameter_Error : exception;
-   No_Temp_File    : exception;
    Invalid_File    : exception;
    --!pp on
 
@@ -39,18 +38,18 @@ package Adaview.Config is
    type Byte_String_T is array (Positive range <>) of Byte_T;
    subtype Path_T is Unbounded_String;
 
-   type Backend_T is (Ghostscript, muPDF);
-   type Doc_Kind_T is (UNKNOWN, PS, PDF);
+   type Uint64_T is mod 2 ** 64;
 
    type Doc_T is record
       Name       : Path_T     := To_Unbounded_String ("");
       Temp_Name  : Path_T     := To_Unbounded_String ("");
       DCS_Name   : Path_T     := To_Unbounded_String ("");
       Backend    : Backend_T  := Ghostscript;
-      Checksum   : String (1 .. MD5_Length);
-      Kind       : Doc_Kind_T := UNKNOWN;
+      Kind       : Doc_Kind_T := UNKNOWN_FILE;
       Cur_Page   : Natural    := 0;
       Total_Page : Natural    := 0;
+      Header_Pos : Uint64_T   := 0;
+      Checksum   : String (1 .. MD5_Length);
    end record;
 
    type Doc_History_T is array (Positive range <>) of Doc_T;

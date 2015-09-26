@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2015 Zhu Qun-Ying.                                          --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,17 +19,14 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Interfaces.C; use Interfaces.C;
-with GNAT.OS_Lib;  use GNAT.OS_Lib;
-
 package Adaview.Sys_Util is
 
-   function system (Arg : char_array) return Integer;
-   pragma Import (C, system, "system");
-   -- import C's system() function
+   No_Temp_File    : exception;
 
-   function mkstemp (filename : char_array) return File_Descriptor;
-   pragma Import (C, mkstemp, "mkstemp");
-   -- import C's mkstemp() function
+   function system (Arg : String) return Integer;
+   -- similar to C's system() call
+
+   procedure mkstemp (filename : in out String);
+   -- similar to C's mkstemp, except the return FD is closed.
 
 end Adaview.Sys_Util;

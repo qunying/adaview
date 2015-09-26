@@ -10,11 +10,11 @@ DESTDIR :=
 
 all:
 	@./generate_locale_path.sh "${localedir}"
-	@gprbuild -d -Padaview.gpr
+	@gprbuild -d -Padaview.gpr -XLIBRARY_TYPE=relocatable
 
 clean:
 	@echo "Cleaning build trees"
-	@gprclean -r -P adaview.gpr
+	@gprclean -r -P adaview.gpr -XLIBRARY_TYPE=relocatable
 
 po:
 	@$(MAKE) -C po

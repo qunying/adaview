@@ -27,7 +27,7 @@ package Adaview.Version is
 
    Major : constant                  := 0;
    Minor : constant                  := 0;
-   Date  : constant                  := 20140328;
+   Date  : constant                  := 20150923;
    Text  : constant Glib.UTF8_String :=
      Trim (Integer'Image (Major), Ada.Strings.Left) &
      "." &

@@ -39,9 +39,9 @@ with Adaview.Version;
 with Adaview.Config;
 with Adaview.Locale;
 with Adaview.Debug;
---with Adaview.PS;
+with Adaview.PS;
 
-procedure Adaview_main is
+procedure Adaview_Main is
    GS_Rev      : aliased Revision_T;
    Instance    : aliased Instance_T;
    Ret         : Code_T;
@@ -122,7 +122,7 @@ begin
       Doc_Ctx.History_Changed := True;
    end if;
 
---   Adaview.PS.Scan (Doc_Ctx);
+   Adaview.PS.Scan (Doc_Ctx);
 
    if Revision (GS_Rev'Access, GS_Rev'Size / 8) > 0 then
       Put_Line ("GS revision size not matching the ghostscript library.");
@@ -151,4 +151,4 @@ begin
    if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.Cur_Doc.Temp_Name then
       Delete_File (To_String (Doc_Ctx.Cur_Doc.Temp_Name));
    end if;
-end Adaview_main;
+end Adaview_Main;

@@ -33,7 +33,6 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams.Stream_IO;
 with System.Address_To_Access_Conversions;
 with Ada.Characters.Latin_1;
-use Interfaces.C;
 
 with Glib.Option;       use Glib.Option;
 with Glib.Option.Extra; use Glib.Option.Extra;
@@ -42,9 +41,10 @@ with Gtkada.Intl;       use Gtkada.Intl;
 with Glib.Error;        use Glib.Error;
 with Glib;              use Glib;
 
-with Adaview.Version; use Adaview.Version;
-with GNAT.OS_Lib;     use GNAT.OS_Lib;
-with String_Format;   use String_Format;
+with Adaview.Version;  use Adaview.Version;
+with Adaview.Sys_Util; use Adaview.Sys_Util;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with String_Format;    use String_Format;
 with Adaview.Debug;
 with GNAT.MD5;
 
@@ -89,10 +89,6 @@ package body Adaview.Config is
 
    procedure Load_History (Ctx : in out Context_T);
    procedure Save_History (Ctx : in Context_T);
-
-   ---------------------------------------------------------------------------
-   function Sys (Arg : char_array) return Integer;
-   pragma Import (C, Sys, "system");
 
    ---------------------------------------------------------------------------
    procedure Process_Options is
@@ -282,23 +278,16 @@ package body Adaview.Config is
       Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
       Base          : constant String     := Base_Name (To_String (File_Name));
-      Template_Name : constant char_array :=
-        To_C ("/tmp/adaview_" & Base & ".XXXXXX");
+      Template_Name : String := "/tmp/adaview_" & Base & ".XXXXXX";
       CMD_Ptr : GNAT.OS_Lib.String_Access;
-      Fd      : File_Descriptor;
       Ret     : Integer;
-      function C_Mkstemp (filename : char_array) return File_Descriptor;
-      pragma Import (C, C_Mkstemp, "mkstemp");
-   begin
-      Fd := C_Mkstemp (Template_Name);
-      if Fd = -1 then
-         raise No_Temp_File;
-      end if;
-      Close (Fd);
 
-      Dbg.Put_Line (Dbg.Trace, "got temp file " & To_Ada (Template_Name));
+   begin
+      mkstemp (Template_Name);
+
+      Dbg.Put_Line (Dbg.Trace, "got temp file " & Template_Name);
       -- remove the trailling NUL character
-      Temp_Name := +To_Ada (Template_Name);
+      Temp_Name := +Template_Name;
       case Compress_Type is
          when COMPRESS | GZIP =>
             CMD_Ptr := Cmd_Gzip'Access;
@@ -310,12 +299,14 @@ package body Adaview.Config is
             null;
       end case;
       --!pp off
-      Ret := Sys (To_C (CMD_Ptr.all & " -dc " & To_String (File_Name)
-                        & " > " & To_String (Temp_Name)));
+      Ret := Sys_Util.system (CMD_Ptr.all & " -dc "
+                              & To_String (File_Name) & " > "
+                              & To_String (Temp_Name));
       --!pp on
       Dbg.Put_Line (Dbg.Trace, "decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
-      if Size (To_String (Temp_Name)) = 0 then
+      if Ret /= 0 or else Size (To_String (Temp_Name)) = 0 then
+         Delete_File (To_String (Temp_Name));
          raise Invalid_File
            with "file " & To_String (File_Name) & " is invalid.";
       end if;
@@ -340,11 +331,6 @@ package body Adaview.Config is
             goto Continue;
          end if;
 
-         Dbg.Put_Line
-           (Dbg.Trace,
-            "got a line with" &
-            Integer'Image (Length (Data_Line)) &
-            " characters");
          if Length (Data_Line) = Entry_Mark'Length
            and then To_String (Data_Line) = Entry_Mark
          then
@@ -368,7 +354,8 @@ package body Adaview.Config is
                   goto Continue;
                end if;
                if Slice (Tokens, 2) = MD5_Method then
-                  Ctx.History (Ctx.Total_Doc).Checksum := Trim (Slice (Tokens, 3), Both);
+                  Ctx.History (Ctx.Total_Doc).Checksum :=
+                    Trim (Slice (Tokens, 3), Both);
                else
                   Dbg.Put_Line (Dbg.Trace, "Wrong checksum method.");
                   goto Continue;

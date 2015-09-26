@@ -20,5 +20,8 @@
 -------------------------------------------------------------------------------
 
 package Adaview is
-   pragma Pure;
+
+   type Backend_T is (Ghostscript, muPDF);
+   type Doc_Kind_T is (UNKNOWN_FILE, PS_FILE, EPSF_FILE, PDF_FILE);
+
 end Adaview;
