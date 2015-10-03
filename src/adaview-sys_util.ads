@@ -19,14 +19,33 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 package Adaview.Sys_Util is
 
-   No_Temp_File    : exception;
+   MD5_Length                 : constant := 32;
+
+   No_Temp_File : exception;
+   Invalid_File : exception;
 
    function system (Arg : String) return Integer;
-   -- similar to C's system() call
+   -- thin binding to C's system function.
 
    procedure mkstemp (filename : in out String);
-   -- similar to C's mkstemp, except the return FD is closed.
+   -- thin binding around C's mkstemp function, except the return FD is closed.
+
+   type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
+
+   procedure Get_File_MD5
+     (File_Name : in     Unbounded_String;
+      Temp_Name : in out Unbounded_String;
+      Checksum  :    out String);
+   -- Calculate the MD5 sum of a given file
+   -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
+   -- calculate the MD5 sum against the uncompressed file
+
+   procedure Create_PDF_DSC_File (PDF_File : in Unbounded_String;
+                                  DSC_File : in out Unbounded_String;
+                                  Password : in Unbounded_String);
 
 end Adaview.Sys_Util;

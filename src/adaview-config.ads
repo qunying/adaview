@@ -22,20 +22,15 @@
 -- Define adaview's configuration and command line arguments
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Adaview.Sys_Util; use Adaview.Sys_Util;
 
 package Adaview.Config is
 
-   MD5_Length                 : constant := 32;
    Max_File_Path_Length       : constant := 512;
    Max_Recent_Document_Number : constant := 10;
 
-   --!pp off
    Parameter_Error : exception;
-   Invalid_File    : exception;
-   --!pp on
 
-   type Byte_T is mod 2**8;
-   type Byte_String_T is array (Positive range <>) of Byte_T;
    subtype Path_T is Unbounded_String;
 
    type Uint64_T is mod 2 ** 64;
@@ -58,22 +53,15 @@ package Adaview.Config is
       Config_File     : Path_T;
       Data_File       : Path_T;
       Cur_Doc         : Doc_T;
+      Password        : Unbounded_String;
       History         : Doc_History_T (1 .. Max_Recent_Document_Number);
       Total_Doc       : Natural := 0;
       History_Changed : Boolean := False;
    end record;
 
-   procedure Process_Options;
+   procedure Process_Options (Ctx : in out Context_T);
    -- Parse command line arguments.
    -- Raise exception Parameter_Error when arugment parsing failed
-
-   procedure Get_File_MD5
-     (File_Name : in     Unbounded_String;
-      Temp_Name : in out Unbounded_String;
-      Checksum  :    out String);
-   -- Calculate the MD5 sum of a given file
-   -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
-   -- calculate the MD5 sum against the uncompressed file
 
    procedure Load_Config (ctx : in out Context_T);
    -- load configuration and recent histories

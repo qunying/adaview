@@ -24,10 +24,14 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNATCOLL.Mmap;         use GNATCOLL.Mmap;
 with GNAT.String_Split;     use GNAT.String_Split;
-with GNAT.Source_Info;
+with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
 
+with GNAT.Source_Info;
+with Ada.Directories;
 with Adaview.Debug;
 with Ada.Strings.Equal_Case_Insensitive;
+with Adaview.Sys_Util; use Adaview.Sys_Util;
+
 package body Adaview.PS is
 
    type File_Data_T is record
@@ -119,7 +123,7 @@ package body Adaview.PS is
             I := I + 1;
          end loop;
          I := First_Word (File, I);
-         if Is_Comment (File, "EPSF", I) then
+         if Is_Comment (File, "EPSF", I - File.Line_Begin) then
             Ctx.Cur_Doc.Kind := EPSF_FILE;
          end if;
          Ctx.Cur_Doc.Header_Pos :=
@@ -127,6 +131,27 @@ package body Adaview.PS is
          Section_Len := Uint64_T (File.Line_Len);
       elsif Is_Comment (File, "%PDF-", 0) then
          Ctx.Cur_Doc.Kind := PDF_FILE;
+         Create_PDF_DSC_File
+           (Ctx.Cur_Doc.Temp_Name,
+            Ctx.Cur_Doc.DCS_Name,
+            Ctx.Password);
+         Scan (Ctx);
+      elsif Length (Ctx.Cur_Doc.DCS_Name) > 0 then
+         declare
+            Current_Line : constant String :=
+              String (File.Str (File.Line_Begin .. File.Line_End));
+         begin
+            -- handle wrong password or need password case ...
+            --!pp off
+            if Count (Current_Line,
+                      "This file requires a password for access.") > 0
+              or Count (Current_Line, "Password did not work.") > 0
+            then
+               Ada.Directories.Delete_File (To_String (Ctx.Cur_Doc.DCS_Name));
+               raise Need_Password;
+            end if;
+            --!pp on
+         end;
       end if;
 
       Close (File.File);
@@ -419,4 +444,5 @@ package body Adaview.PS is
       end loop;
       return I;
    end First_Word;
+
 end Adaview.PS;

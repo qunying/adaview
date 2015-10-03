@@ -40,6 +40,7 @@ with Adaview.Config;
 with Adaview.Locale;
 with Adaview.Debug;
 with Adaview.PS;
+with Adaview.Sys_Util;
 
 procedure Adaview_Main is
    GS_Rev      : aliased Revision_T;
@@ -57,7 +58,7 @@ begin
 
    Dbg.Set_Flag (Dbg.Trace);
 
-   Adaview.Config.Process_Options;
+   Adaview.Config.Process_Options (Doc_Ctx);
 
    -- we only use the first unknow argument as file name
    if Argument_Count > 2 then
@@ -84,7 +85,7 @@ begin
         (Dbg.Trace,
          "Got document: " & To_String (Doc_Ctx.Cur_Doc.Name));
       Doc_Ctx.Cur_Doc.Temp_Name := Doc_Ctx.Cur_Doc.Name;
-      Adaview.Config.Get_File_MD5
+      Adaview.Sys_Util.Get_File_MD5
         (Doc_Ctx.Cur_Doc.Name,
          Doc_Ctx.Cur_Doc.Temp_Name,
          Doc_Ctx.Cur_Doc.Checksum);
