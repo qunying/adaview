@@ -40,9 +40,9 @@ with Gtkada.Intl;       use Gtkada.Intl;
 with Glib.Error;        use Glib.Error;
 with Glib;              use Glib;
 
-with Adaview.Version;  use Adaview.Version;
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
-with String_Format;    use String_Format;
+with Adaview.Version; use Adaview.Version;
+with GNAT.OS_Lib;     use GNAT.OS_Lib;
+with String_Format;   use String_Format;
 with Adaview.Debug;
 
 package body Adaview.Config is
@@ -68,7 +68,8 @@ package body Adaview.Config is
    type Gboolean_Access is access all Gboolean;
    package ACL renames Ada.Characters.Latin_1;
    package Sys_Addr is new System.Address_To_Access_Conversions (Integer);
-   package Char_Ptr_Addr is new System.Address_To_Access_Conversions (chars_ptr);
+   package Char_Ptr_Addr is new System.Address_To_Access_Conversions
+     (chars_ptr);
    package Dbg renames Adaview.Debug;
 
    function To_Address (C : Gboolean_Access) return System.Address;

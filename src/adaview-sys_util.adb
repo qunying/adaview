@@ -211,4 +211,22 @@ package body Adaview.Sys_Util is
       Stream_IO.Close (In_File);
       Checksum := GNAT.MD5.Digest (MD5_Ctx);
    end Get_File_MD5;
+
+   ---------------------------------------------------------------------------
+   procedure Increment (Num : in out Integer) is
+   begin
+      Num := Num + 1;
+   end Increment;
+
+   ---------------------------------------------------------------------------
+   procedure Increment (Num : in out Integer; Step : in Integer) is
+   begin
+      Num := Num + Step;
+   end Increment;
+
+   ---------------------------------------------------------------------------
+   procedure Decrement (Num : in out Integer) is
+   begin
+      Num := Num - 1;
+   end Decrement;
 end Adaview.Sys_Util;

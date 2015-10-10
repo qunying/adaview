@@ -22,7 +22,8 @@
 -- Define adaview's configuration and command line arguments
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Adaview.Sys_Util; use Adaview.Sys_Util;
+with Adaview.Sys_Util;      use Adaview.Sys_Util;
+with Interfaces;
 
 package Adaview.Config is
 
@@ -33,18 +34,19 @@ package Adaview.Config is
 
    subtype Path_T is Unbounded_String;
 
-   type Uint64_T is mod 2 ** 64;
-
    type Doc_T is record
-      Name       : Path_T     := To_Unbounded_String ("");
-      Temp_Name  : Path_T     := To_Unbounded_String ("");
-      DCS_Name   : Path_T     := To_Unbounded_String ("");
-      Backend    : Backend_T  := Ghostscript;
-      Kind       : Doc_Kind_T := UNKNOWN_FILE;
-      Cur_Page   : Natural    := 0;
-      Total_Page : Natural    := 0;
-      Header_Pos : Uint64_T   := 0;
-      Checksum   : String (1 .. MD5_Length);
+      Name          : Path_T                 := Null_Unbounded_String;
+      Temp_Name     : Path_T                 := Null_Unbounded_String;
+      DCS_Name      : Path_T                 := Null_Unbounded_String;
+      Backend       : Backend_T              := Ghostscript;
+      Kind          : Doc_Kind_T             := UNKNOWN_FILE;
+      Cur_Page      : Natural                := 0;
+      Total_Page    : Natural                := 0;
+      Header_Pos    : Interfaces.Unsigned_64 := 0;
+      Title         : Unbounded_String       := Null_Unbounded_String;
+      Creation_Date : Unbounded_String       := Null_Unbounded_String;
+      Bounding_Box  : Adaview.Bounding_Box_T;
+      Checksum      : String (1 .. MD5_Length);
    end record;
 
    type Doc_History_T is array (Positive range <>) of Doc_T;
@@ -57,6 +59,18 @@ package Adaview.Config is
       History         : Doc_History_T (1 .. Max_Recent_Document_Number);
       Total_Doc       : Natural := 0;
       History_Changed : Boolean := False;
+      Respect_EOF     : Boolean := False;
+      -- Derived from the scanstyle argument.
+      -- If set to False EOF comments will be ignored,
+      -- if set to True they will be taken seriously.
+      -- Purpose; Out there are many documents which
+      -- include other DSC conforming documents without
+      -- without enclosing them by 'BeginDocument' and
+      -- 'EndDocument' comments. This may cause fake EOF
+      -- comments to appear in the body of a page.
+      -- Similarly, if respect_eof is set to false
+      -- 'Trailer' comments are ignored except of the
+      -- last one found in the document.
    end record;
 
    procedure Process_Options (Ctx : in out Context_T);
@@ -67,5 +81,6 @@ package Adaview.Config is
    -- load configuration and recent histories
 
    procedure Save_Config (Ctx : in Context_T);
+   -- save cofinguration and recent histories
 
 end Adaview.Config;

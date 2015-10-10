@@ -48,4 +48,12 @@ package Adaview.Sys_Util is
                                   DSC_File : in out Unbounded_String;
                                   Password : in Unbounded_String);
 
+   procedure Increment (Num : in out Integer);
+   pragma Inline (Increment);
+
+   procedure Increment (Num : in out Integer; Step : in Integer);
+   pragma Inline (Increment);
+
+   procedure Decrement (Num : in out Integer);
+   pragma Inline (Decrement);
 end Adaview.Sys_Util;

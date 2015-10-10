@@ -26,7 +26,10 @@ with Adaview.Config; use Adaview.Config;
 
 package Adaview.PS is
 
-   Need_Password : exception;
+   --!pp off
+   Need_Password     : exception;
+   Unknown_File_Type : exception;
+   --!pp on
 
    procedure Scan (Ctx : in out Context_T);
    -- scan the PostScript file for document structuring comments.

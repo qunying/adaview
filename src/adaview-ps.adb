@@ -21,10 +21,12 @@
 
 with Ada.Characters.Latin_1;
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with GNATCOLL.Mmap;         use GNATCOLL.Mmap;
-with GNAT.String_Split;     use GNAT.String_Split;
-with Ada.Strings.Fixed;     use Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;   use Ada.Strings.Unbounded;
+with GNATCOLL.Mmap;           use GNATCOLL.Mmap;
+with GNAT.String_Split;       use GNAT.String_Split;
+with Ada.Strings.Fixed;       use Ada.Strings.Fixed;
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+with Interfaces;              use Interfaces;
 
 with GNAT.Source_Info;
 with Ada.Directories;
@@ -52,6 +54,8 @@ package body Adaview.PS is
    end record;
 
    Break_Get_Chars_Buf_Size : constant := 49152;
+   PS_Line_Length           : constant := 256;
+   -- 255 characters + 1 newline
 
    package ACL renames Ada.Characters.Latin_1;
    package Dbg renames Adaview.Debug;
@@ -92,11 +96,29 @@ package body Adaview.PS is
    function First_Word (FD : File_Data_T; Offset : Integer) return Integer;
    pragma Inline (First_Word);
 
+   procedure Test_For_PDF_Password
+     (Ctx  :        Context_T;
+      File : in out File_Data_T);
+   pragma Inline (Test_For_PDF_Password);
+
+   function Get_Text_Line
+     (FD     : File_Data_T;
+      Offset : Integer) return Unbounded_String;
+   -- skip over white space and return the rest of the line.
+   -- If the text begins with '(' return the text string using Get_Text
+
+   function Get_Text
+     (FD     : File_Data_T;
+      Offset : Integer) return Unbounded_String;
+   -- return the next text string on the line.
+   -- return Null_Unbonded_String if nothing is present.
+
    ---------------------------------------------------------------------------
    procedure Scan (Ctx : in out Context_T) is
       File        : File_Data_T;
       I           : Integer;
-      Section_Len : Uint64_T;
+      Section_Len : Unsigned_64;
+      Preread     : Boolean;
    begin
       Dbg.Put_Line (Dbg.Trace, "Enter " & GSI.Enclosing_Entity);
       if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
@@ -127,8 +149,8 @@ package body Adaview.PS is
             Ctx.Cur_Doc.Kind := EPSF_FILE;
          end if;
          Ctx.Cur_Doc.Header_Pos :=
-           Uint64_T (File.Offs - Offset (File.File)) + Uint64_T (I);
-         Section_Len := Uint64_T (File.Line_Len);
+           Unsigned_64 (File.Offs - Offset (File.File)) + Unsigned_64 (I);
+         Section_Len := Unsigned_64 (File.Line_Len);
       elsif Is_Comment (File, "%PDF-", 0) then
          Ctx.Cur_Doc.Kind := PDF_FILE;
          Create_PDF_DSC_File
@@ -136,24 +158,35 @@ package body Adaview.PS is
             Ctx.Cur_Doc.DCS_Name,
             Ctx.Password);
          Scan (Ctx);
-      elsif Length (Ctx.Cur_Doc.DCS_Name) > 0 then
-         declare
-            Current_Line : constant String :=
-              String (File.Str (File.Line_Begin .. File.Line_End));
-         begin
-            -- handle wrong password or need password case ...
-            --!pp off
-            if Count (Current_Line,
-                      "This file requires a password for access.") > 0
-              or Count (Current_Line, "Password did not work.") > 0
-            then
-               Ada.Directories.Delete_File (To_String (Ctx.Cur_Doc.DCS_Name));
-               raise Need_Password;
-            end if;
-            --!pp on
-         end;
+      else
+         Close (File.File);
+         raise Unknown_File_Type with "Unable to identify file type.";
       end if;
 
+      Test_For_PDF_Password (Ctx, File);
+
+      Preread := False;
+      while Preread or else Read_Line (File) loop
+         if not Preread then
+            Section_Len := Section_Len + Unsigned_64 (File.Line_Len);
+         end if;
+         Preread := False;
+         exit when File.Str (File.Line_Begin) /= '%'
+           or else Is_Comment (File, "%EndComments", 1)
+           or else File.Str (File.Line_Begin + 1) = ACL.HT
+           or else File.Str (File.Line_Begin + 1) = ACL.LF
+           or else File.Str (File.Line_Begin + 1) = ACL.CR
+           or else Is_Graphic (File.Str (File.Line_Begin + 1));
+
+         if File.Str (File.Line_Begin + 1) /= '%' then
+            null; -- do nothing
+         elsif Ctx.Cur_Doc.Title = Null_Unbounded_String
+           and then Is_Comment (File, "Title:", 2)
+         then
+            Ctx.Cur_Doc.Title := Get_Text_Line (File, 8);
+            -- Using length of "%%Title:"
+         end if;
+      end loop;
       Close (File.File);
    end Scan;
 
@@ -445,4 +478,182 @@ package body Adaview.PS is
       return I;
    end First_Word;
 
+   ---------------------------------------------------------------------------
+   procedure Test_For_PDF_Password
+     (Ctx  :        Context_T;
+      File : in out File_Data_T) is
+      Current_Line : constant String :=
+        String (File.Str (File.Line_Begin .. File.Line_End));
+   begin
+      if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
+         -- handle wrong password or need password case ...
+         --!pp off
+         if Index (Current_Line,
+                   "This file requires a password for access.") > 0
+           or Index (Current_Line, "Password did not work.") > 0
+         then
+            Ada.Directories.Delete_File (To_String (Ctx.Cur_Doc.DCS_Name));
+            Close (File.File);
+            raise Need_Password with "PDF file need password.";
+         end if;
+         --!pp on
+      end if;
+   end Test_For_PDF_Password;
+
+   ---------------------------------------------------------------------------
+   function Get_Text_Line
+     (FD     : File_Data_T;
+      Offset : Integer) return Unbounded_String is
+      Line_Idx : Integer := FD.Line_Begin + Offset;
+   begin
+      while Line_Idx <= FD.Line_End loop
+         exit when FD.Str (Line_Idx) /= ' '
+           and then FD.Str (Line_Idx) /= ACL.HT;
+         Line_Idx := Line_Idx + 1;
+      end loop;
+      if Line_Idx > FD.Line_End then
+         return Null_Unbounded_String;
+      end if;
+      if FD.Str (Line_Idx) = '(' then
+         return Get_Text (FD, Line_Idx - FD.Line_Begin);
+      end if;
+      return To_Unbounded_String (String (FD.Str (Line_Idx .. FD.Line_End)));
+   end Get_Text_Line;
+
+   ---------------------------------------------------------------------------
+   function Get_Text
+     (FD     : File_Data_T;
+      Offset : Integer) return Unbounded_String is
+      Line_Idx : Integer := FD.Line_Begin + Offset;
+      Level    : Integer;
+      Quoted   : Boolean := False;
+      Text     : String (1 .. PS_Line_Length);
+      Text_End   : Integer := 1;
+      Char, Char1, Char2, Char3, Char4 : Character;
+      Zero_Pos : Integer := Character'Pos ('0');
+   begin
+      while Line_Idx <= FD.Line_End loop
+         exit when FD.Str (Line_Idx) /= ' '
+           and then FD.Str (Line_Idx) /= ACL.HT;
+         Line_Idx := Line_Idx + 1;
+      end loop;
+      if FD.Str (Line_Idx) = '(' then
+         Level := 0;
+         Quoted := True;
+         Line_Idx := Line_Idx + 1;
+         while Line_Idx <= FD.Line_End
+           and then not (Fd.Str (FD.Line_Idx) = ')' and then Level = 0)
+           and then Text_End > PS_Line_Length;
+         loop
+            Char := FD.Str (Line_Idx);
+            if Char = '\' and Line_Idx + 1 <= FD.Line_End then
+               Char1 := FD.Str (Line_Idx + 1);
+               case Char1 is
+                  when 'n' =>
+                  Text (Text_End) := ACL.LF;
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+                  when 'r' =>
+                  Text (Text_End) := ACL.CR;
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+                  when 't' =>
+                  Text (Text_End) := ACL.HT;
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               when 'b' =>
+                  Text (Text_End) := ACL.BEL;
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               when 'f' =>
+                  Text (Text_End) := ACL.LF;
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               when '\' =>
+                  Text (Text_End) := '\';
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               when '(' =>
+                  Text (Text_End) := '(';
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               when ')' =>
+                  Text (Text_End) := ')';
+                  Increment (Text_End);
+                     Increment (Line_Idx, 2);
+               when '0' .. '9' =>
+                  if Line_Idx + 2 <= FD.Line_End then
+                     Char2 := FD.Str (Line_Idx + 2);
+                     if Is_Digit (Char2) then
+                        if Line_Idx + 3 <= FD.Line_End then
+                           Char3 := Fd.Str (Line_Idx + 3);
+                           if Is_Digit (Char3) then
+                              Text (Text_End) := Character'Val(((Char1'Pos - Zero_Pos) * 8
+                                                               + Char2'Pos - Zero_Pos) * 8
+                                                               + Char3'Pos - Zero_Pos);
+                              Increment (Text_End);
+                              Increment (Line_Idx, 4);
+                           else
+                              Text (Text_End) := Character'Val ((Char1'Pos - Zero_Pos) * 8
+                                                                + Char2'Pos - Zero_Pos);
+                              Increment (Text_End);
+                              Increment (Line_Idx, 3);
+                           end if;
+                        else
+                           Text (Text_End) := Character'Val ((Char1'Pos - Zero_Pos) * 8
+                                                             + Char2'Pos - Zero_Pos);
+                           Increment (Text_End);
+                           Increment (Line_Idx, 3);
+                        end if;
+                     else
+                        Text (TexT_End) := Character'Val (Char1'Pos - Zero_Pos);
+                        Increment (Text_End);
+                        Increment (Line_Idx, 2);
+                     end if;
+                  else
+                     Text (TexT_End) := Character'Val (Char1'Pos - Zero_Pos);
+                     Increment (Text_End);
+                     Increment (Line_Idx, 2);
+                  end if;
+               when others =>
+                  Text (Text_End) := FD.Str (Line_Idx + 1);
+                  Increment (Text_End);
+                  Increment (Line_Idx, 2);
+               end case;
+            elsif Char = '(' then
+               Increment (Level);
+               Text (Text_End) := Char;
+               Increment (Text_End);
+               Increment (Line_Idx);
+            elsif Char = ')' then
+               Decrement (Level);
+               Text (Text_End) := Char;
+               Increment (Text_End);
+               Increment (Line_Idx);
+            else
+               Text (Text_End) := Char;
+               Increment (Text_End);
+               Increment (Line_Idx);
+            end if;
+         end loop;
+         -- delet trailing ')'
+         if Line_Idx < FD.Line_End then
+            Increment (Line_Idx);
+         end if;
+      else
+         while Line_Idx <= FD.Line_End loop
+            Char := FD.Str (Line_Idx);
+            exit when not (Char = ACL.Space or Char = ACL.HT or Char = ACL.LF
+                           or Char = ACL.CR) and Text_End > PS_Line_Length;
+            Text (Text_End) := Char;
+            Increment (Text_End);
+            Increment (Line_Idx);
+         end loop;
+      end if;
+      if TextEnd > 1 then
+         return To_Unbounded_String (Text (1 .. Text_End - 1));
+      else
+         return Null_Unbounded_String;
+      end if;
+   end Get_Text;
 end Adaview.PS;
