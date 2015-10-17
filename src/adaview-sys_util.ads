@@ -19,11 +19,7 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-
 package Adaview.Sys_Util is
-
-   MD5_Length                 : constant := 32;
 
    No_Temp_File : exception;
    Invalid_File : exception;
@@ -40,18 +36,22 @@ package Adaview.Sys_Util is
      (File_Name : in     Unbounded_String;
       Temp_Name : in out Unbounded_String;
       Checksum  :    out String);
-   -- Calculate the MD5 sum of a given file
+   -- Calculate the MD5 sum of a given file.
    -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
-   -- calculate the MD5 sum against the uncompressed file
+   -- calculate the MD5 sum against the uncompressed file.
 
-   procedure Create_PDF_DSC_File (PDF_File : in Unbounded_String;
-                                  DSC_File : in out Unbounded_String;
-                                  Password : in Unbounded_String);
+   procedure Create_PDF_DSC_File
+     (PDF_File : in     Unbounded_String;
+      DSC_File : in out Unbounded_String;
+      Password : in     Unbounded_String);
 
    procedure Increment (Num : in out Integer);
    pragma Inline (Increment);
 
    procedure Increment (Num : in out Integer; Step : in Integer);
+   pragma Inline (Increment);
+
+   procedure Increment (Num : in out Unsigned_64; Step : in Integer);
    pragma Inline (Increment);
 
    procedure Decrement (Num : in out Integer);

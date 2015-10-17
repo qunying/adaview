@@ -20,7 +20,7 @@
 -------------------------------------------------------------------------------
 
 package body Adaview.Debug is
-   Cur_Flag : Flag := None;
+   Cur_Flag : Flag := NONE;
 
    ---------------------------------------------------------------------------
    procedure Set_Flag (In_Flag : Flag) is
@@ -37,7 +37,7 @@ package body Adaview.Debug is
    ---------------------------------------------------------------------------
    procedure Put (In_Flag : Flag; Msg : String) is
    begin
-      if Cur_Flag /= None and then Cur_Flag >= In_Flag then
+      if Cur_Flag /= NONE and then Cur_Flag >= In_Flag then
          Ada.Text_IO.Put (Msg);
       end if;
    end Put;
@@ -45,7 +45,7 @@ package body Adaview.Debug is
    ---------------------------------------------------------------------------
    procedure Put_Line (In_Flag : Flag; Msg : String) is
    begin
-      if Cur_Flag /= None and then Cur_Flag >= In_Flag then
+      if Cur_Flag /= NONE and then Cur_Flag >= In_Flag then
          Ada.Text_IO.Put_Line (Msg);
       end if;
    end Put_Line;
@@ -55,7 +55,7 @@ package body Adaview.Debug is
      (In_Flag : Flag;
       Count   : Ada.Text_IO.Positive_Count := 1) is
    begin
-      if Cur_Flag /= None and then Cur_Flag >= In_Flag then
+      if Cur_Flag /= NONE and then Cur_Flag >= In_Flag then
          Ada.Text_IO.New_Line (Count);
       end if;
    end New_Line;

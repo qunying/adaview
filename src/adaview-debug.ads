@@ -22,7 +22,7 @@
 with Ada.Text_IO;
 
 package Adaview.Debug is
-   type Flag is (None, Error, Warning, Info, Trace);
+   type Flag is (NONE, ERROR, WARNING, INFO, TRACE);
 
    procedure Set_Flag (In_Flag : Flag);
 

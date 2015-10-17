@@ -25,8 +25,8 @@ with Ada.Environment_Variables;     use Ada.Environment_Variables;
 with Ada.Strings;                   use Ada.Strings;
 with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
 with Ada.Strings.Fixed;             use Ada.Strings.Fixed;
-
-with GNAT.String_Split; use GNAT.String_Split;
+with Ada.Strings.Unbounded;         use Ada.Strings.Unbounded;
+with GNAT.String_Split;             use GNAT.String_Split;
 
 with System;
 with Ada.Unchecked_Conversion;
@@ -40,9 +40,10 @@ with Gtkada.Intl;       use Gtkada.Intl;
 with Glib.Error;        use Glib.Error;
 with Glib;              use Glib;
 
-with Adaview.Version; use Adaview.Version;
-with GNAT.OS_Lib;     use GNAT.OS_Lib;
-with String_Format;   use String_Format;
+with Adaview.Version;  use Adaview.Version;
+with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with Adaview.Sys_Util; use Adaview.Sys_Util;
+
 with Adaview.Debug;
 
 package body Adaview.Config is
@@ -145,16 +146,16 @@ package body Adaview.Config is
 
       case Debug_Level is
          when 0 =>
-            Dbg.Set_Flag (Dbg.None);
+            Dbg.Set_Flag (Dbg.NONE);
          when 8 =>
-            Dbg.Set_Flag (Dbg.Trace);
+            Dbg.Set_Flag (Dbg.TRACE);
          when others =>
-            Dbg.Set_Flag (Dbg.Info);
+            Dbg.Set_Flag (Dbg.INFO);
       end case;
 
       if Password /= Null_Ptr then
          Ctx.Password := +Value (Password);
-         Dbg.Put_Line (Dbg.Trace, "got password " & To_String (Ctx.Password));
+         Dbg.Put_Line (Dbg.TRACE, "got password " & To_String (Ctx.Password));
       end if;
       -- free the opts and context
       for i in Opts'Range loop
@@ -189,7 +190,7 @@ package body Adaview.Config is
       ctx.Config_File := Conf_Path & "/config.txt";
       Load_History (ctx);
       Dbg.Put_Line
-        (Dbg.Trace,
+        (Dbg.TRACE,
          "Got" & Integer'Image (ctx.Total_Doc) & " entries in history");
    end Load_Config;
 
@@ -239,14 +240,14 @@ package body Adaview.Config is
                Ctx.History (Ctx.Total_Doc).Name := +Slice (Tokens, 2);
             elsif Mark = Checksum_Mark then
                if Slice_Count (Tokens) /= 3 then
-                  Dbg.Put_Line (Dbg.Trace, "Wrong checksum line.");
+                  Dbg.Put_Line (Dbg.TRACE, "Wrong checksum line.");
                   goto Continue;
                end if;
                if Slice (Tokens, 2) = MD5_Method then
                   Ctx.History (Ctx.Total_Doc).Checksum :=
                     Trim (Slice (Tokens, 3), Both);
                else
-                  Dbg.Put_Line (Dbg.Trace, "Wrong checksum method.");
+                  Dbg.Put_Line (Dbg.TRACE, "Wrong checksum method.");
                   goto Continue;
                end if;
             elsif Mark = Kind_Mark then
@@ -296,7 +297,7 @@ package body Adaview.Config is
    procedure Save_History (Ctx : in Context_T) is
       Out_File : File_Type;
    begin
-      Dbg.Put_Line (Dbg.Trace, "save history to " & To_String (Ctx.Data_File));
+      Dbg.Put_Line (Dbg.TRACE, "save history to " & To_String (Ctx.Data_File));
       Create (Out_File, Ada.Text_IO.Out_File, To_String (Ctx.Data_File));
       if Ctx.Cur_Doc.Checksum (1) /= ' ' then
          Save_One_Entry (Out_File, Ctx.Cur_Doc);
@@ -347,8 +348,8 @@ package body Adaview.Config is
          -- skip the first few lines to use our own format
          for i in Help_Msg'Range loop
             if Help_Msg (i) = ACL.LF then
-               Count := Count + 1;
-               Idx   := i;
+               Increment (Count);
+               Idx := i;
             end if;
             exit when Count = 2;
          end loop;

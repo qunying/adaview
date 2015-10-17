@@ -21,9 +21,7 @@
 
 -- Define adaview's configuration and command line arguments
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Adaview.Sys_Util;      use Adaview.Sys_Util;
-with Interfaces;
+with Ada.Strings.Unbounded;
 
 package Adaview.Config is
 
@@ -31,23 +29,6 @@ package Adaview.Config is
    Max_Recent_Document_Number : constant := 10;
 
    Parameter_Error : exception;
-
-   subtype Path_T is Unbounded_String;
-
-   type Doc_T is record
-      Name          : Path_T                 := Null_Unbounded_String;
-      Temp_Name     : Path_T                 := Null_Unbounded_String;
-      DCS_Name      : Path_T                 := Null_Unbounded_String;
-      Backend       : Backend_T              := Ghostscript;
-      Kind          : Doc_Kind_T             := UNKNOWN_FILE;
-      Cur_Page      : Natural                := 0;
-      Total_Page    : Natural                := 0;
-      Header_Pos    : Interfaces.Unsigned_64 := 0;
-      Title         : Unbounded_String       := Null_Unbounded_String;
-      Creation_Date : Unbounded_String       := Null_Unbounded_String;
-      Bounding_Box  : Adaview.Bounding_Box_T;
-      Checksum      : String (1 .. MD5_Length);
-   end record;
 
    type Doc_History_T is array (Positive range <>) of Doc_T;
 

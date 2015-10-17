@@ -22,7 +22,6 @@ with Interfaces.C; use Interfaces.C;
 with GNAT.OS_Lib;  use GNAT.OS_Lib;
 
 with Ada.Directories; use Ada.Directories;
-with String_Format; use String_Format;
 with Ada.Streams.Stream_IO;
 with System.Address_To_Access_Conversions;
 
@@ -32,11 +31,11 @@ with GNAT.MD5;
 package body Adaview.Sys_Util is
 
    package Dbg renames Adaview.Debug;
-   Cmd_Gzip      : aliased String := "gzip";
-   Cmd_Bzip2     : aliased String := "bzip2";
-   Cmd_Xz        : aliased String := "xz";
+   Cmd_Gzip  : aliased String := "gzip";
+   Cmd_Bzip2 : aliased String := "bzip2";
+   Cmd_Xz    : aliased String := "xz";
 
-   type Byte_T is mod 2 ** 8;
+   type Byte_T is mod 2**8;
    type Byte_String_T is array (Positive range <>) of Byte_T;
 
    procedure Decompress_File
@@ -49,7 +48,7 @@ package body Adaview.Sys_Util is
       function Sys (Arg : char_array) return Integer;
       pragma Import (C, Sys, "system");
    begin
-      Dbg.Put_Line (Dbg.Trace, "system(""" & Arg & """)");
+      Dbg.Put_Line (Dbg.TRACE, "system(""" & Arg & """)");
       return Sys (To_C (Arg));
    end system;
 
@@ -57,7 +56,7 @@ package body Adaview.Sys_Util is
    procedure mkstemp (filename : in out String) is
       function c_mkstemp (filename : char_array) return File_Descriptor;
       pragma Import (C, c_mkstemp, "mkstemp");
-      Fd : File_Descriptor;
+      Fd      : File_Descriptor;
       In_File : constant char_array := To_C (filename);
    begin
       Fd := c_mkstemp (In_File);
@@ -73,15 +72,15 @@ package body Adaview.Sys_Util is
      (File_Name     : in     Unbounded_String;
       Temp_Name     : in out Unbounded_String;
       Compress_Type : in     Compress_T) is
-      Base          : constant String     := Base_Name (To_String (File_Name));
-      Template_Name : String := "/tmp/adaview_" & Base & ".XXXXXX";
-      CMD_Ptr : GNAT.OS_Lib.String_Access;
-      Ret     : Integer;
+      Base          : constant String := Base_Name (To_String (File_Name));
+      Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
+      CMD_Ptr       : GNAT.OS_Lib.String_Access;
+      Ret           : Integer;
 
    begin
       mkstemp (Template_Name);
 
-      Dbg.Put_Line (Dbg.Trace, "got temp file " & Template_Name);
+      Dbg.Put_Line (Dbg.TRACE, "got temp file " & Template_Name);
       -- remove the trailling NUL character
       case Compress_Type is
          when COMPRESS | GZIP =>
@@ -97,7 +96,7 @@ package body Adaview.Sys_Util is
       Ret := system (CMD_Ptr.all & " -dc " & To_String (File_Name) & " > "
                      & Template_Name);
       --!pp on
-      Dbg.Put_Line (Dbg.Trace, "decompress result: " & Integer'Image (Ret));
+      Dbg.Put_Line (Dbg.TRACE, "decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
       if Ret /= 0 or else Size (Template_Name) = 0 then
          Delete_File (Template_Name);
@@ -108,11 +107,12 @@ package body Adaview.Sys_Util is
    end Decompress_File;
 
    ---------------------------------------------------------------------------
-   procedure Create_PDF_DSC_File (PDF_File : in Unbounded_String;
-                                  DSC_File : in out Unbounded_String;
-                                  Password : in Unbounded_String) is
+   procedure Create_PDF_DSC_File
+     (PDF_File : in     Unbounded_String;
+      DSC_File : in out Unbounded_String;
+      Password : in     Unbounded_String) is
       Base          : constant String := Base_Name (To_String (PDF_File));
-      Template_Name : String := "/tmp/adaview_" & Base & ".XXXXXX";
+      Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
       Ret           : Integer;
    begin
       mkstemp (Template_Name);
@@ -131,7 +131,7 @@ package body Adaview.Sys_Util is
       end if;
       --!pp on
 
-      Dbg.Put_Line (Dbg.Trace, "PDF to DSC result: " & Integer'Image (Ret));
+      Dbg.Put_Line (Dbg.TRACE, "PDF to DSC result: " & Integer'Image (Ret));
       -- DSC file have zero length, consider failed.
       if Ret /= 0 or else Size (Template_Name) = 0 then
          Delete_File (Template_Name);
@@ -148,7 +148,7 @@ package body Adaview.Sys_Util is
       use Ada.Streams;
 
       In_File         : Stream_IO.File_Type;
-      Data_Block_Size : constant := 8192;
+      Data_Block_Size : constant := 8_192;
 
       Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
@@ -168,8 +168,9 @@ package body Adaview.Sys_Util is
       Compress_Type  : Compress_T := NO_COMPRESS;
       --!pp on
 
-      subtype SEA_T is Stream_Element_Array (1 .. Data_Block_Size);
-      package SEA_Addr is new Standard.System.Address_To_Access_Conversions (SEA_T);
+      subtype Sea_T is Stream_Element_Array (1 .. Data_Block_Size);
+      package SEA_Addr is new Standard.System.Address_To_Access_Conversions
+        (Sea_T);
       Into : constant SEA_Addr.Object_Pointer :=
         SEA_Addr.To_Pointer (Data'Address);
       Got     : Stream_Element_Offset;
@@ -192,7 +193,7 @@ package body Adaview.Sys_Util is
          end if;
       end if;
       Dbg.Put_Line
-        (Dbg.Trace,
+        (Dbg.TRACE,
          "compression method " & Compress_T'Image (Compress_Type));
       if Compress_Type /= NO_COMPRESS then
          Stream_IO.Close (In_File);
@@ -222,6 +223,12 @@ package body Adaview.Sys_Util is
    procedure Increment (Num : in out Integer; Step : in Integer) is
    begin
       Num := Num + Step;
+   end Increment;
+
+   ---------------------------------------------------------------------------
+   procedure Increment (Num : in out Unsigned_64; Step : in Integer) is
+   begin
+      Num := Num + Unsigned_64 (Step);
    end Increment;
 
    ---------------------------------------------------------------------------

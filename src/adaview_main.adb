@@ -56,7 +56,7 @@ begin
    Text_Domain (Adaview.Version.Prg_Name);
    Bind_Text_Domain (Adaview.Version.Prg_Name, Adaview.Locale.Path);
 
-   Dbg.Set_Flag (Dbg.Trace);
+   Dbg.Set_Flag (Dbg.TRACE);
 
    Adaview.Config.Process_Options (Doc_Ctx);
 
@@ -82,14 +82,14 @@ begin
       end if;
 
       Dbg.Put_Line
-        (Dbg.Trace,
+        (Dbg.TRACE,
          "Got document: " & To_String (Doc_Ctx.Cur_Doc.Name));
       Doc_Ctx.Cur_Doc.Temp_Name := Doc_Ctx.Cur_Doc.Name;
       Adaview.Sys_Util.Get_File_MD5
         (Doc_Ctx.Cur_Doc.Name,
          Doc_Ctx.Cur_Doc.Temp_Name,
          Doc_Ctx.Cur_Doc.Checksum);
-      Dbg.Put_Line (Dbg.Trace, "md5: " & Doc_Ctx.Cur_Doc.Checksum);
+      Dbg.Put_Line (Dbg.TRACE, "md5: " & Doc_Ctx.Cur_Doc.Checksum);
 
       if Argument_Count = 2 then
          Doc_Ctx.Cur_Doc.Cur_Page := Integer'Value (Argument (2));
@@ -98,7 +98,7 @@ begin
       for i in 1 .. Doc_Ctx.Total_Doc loop
          if Doc_Ctx.Cur_Doc.Checksum = Doc_Ctx.History (i).Checksum then
             -- we found an entry
-            Dbg.Put_Line (Dbg.Trace, "we got an entry in the history.");
+            Dbg.Put_Line (Dbg.TRACE, "we got an entry in the history.");
             Matched_Idx := i;
             if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.History (i).Name then
                Doc_Ctx.History (i).Name := Doc_Ctx.Cur_Doc.Name;
@@ -116,7 +116,7 @@ begin
          end if;
       end loop;
    else
-      Dbg.Put_Line (Dbg.Trace, "No more argument");
+      Dbg.Put_Line (Dbg.TRACE, "No more argument");
    end if;
 
    if Matched_Idx = 0 and Argument_Count > 0 then
@@ -131,10 +131,10 @@ begin
    end if;
 
    --   Gtk.Main.Init;
-   Dbg.Put (Dbg.Trace, Get_Product (GS_Rev) & ", ");
-   Dbg.Put_Line (Dbg.Trace, Get_Copyright (GS_Rev));
-   Dbg.Put (Dbg.Trace, "Version " & Get_Revision_Num_String (GS_Rev));
-   Dbg.Put_Line (Dbg.Trace, " (" & Get_Revision_Date_String (GS_Rev) & ")");
+   Dbg.Put (Dbg.TRACE, Get_Product (GS_Rev) & ", ");
+   Dbg.Put_Line (Dbg.TRACE, Get_Copyright (GS_Rev));
+   Dbg.Put (Dbg.TRACE, "Version " & Get_Revision_Num_String (GS_Rev));
+   Dbg.Put_Line (Dbg.TRACE, " (" & Get_Revision_Date_String (GS_Rev) & ")");
 
    Ret := New_Instance (Instance'Access, Null_Address);
    if Ret < 0 then
@@ -143,10 +143,10 @@ begin
       Put (Integer (Ret));
       New_Line;
    else
-      Dbg.Put_Line (Dbg.Trace, "Got instance.");
+      Dbg.Put_Line (Dbg.TRACE, "Got instance.");
    end if;
 
-   Dbg.Put_Line (Dbg.Trace, "delete instance");
+   Dbg.Put_Line (Dbg.TRACE, "delete instance");
    Delete_Instance (Instance);
    Adaview.Config.Save_Config (Doc_Ctx);
    if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.Cur_Doc.Temp_Name then
