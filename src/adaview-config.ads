@@ -64,4 +64,6 @@ package Adaview.Config is
    procedure Save_Config (Ctx : in Context_T);
    -- save cofinguration and recent histories
 
+   procedure Load_Medias;
+   -- load medias definition from system wide/user defined or current directory
 end Adaview.Config;

@@ -37,7 +37,7 @@ with Gtkada.Intl; use Gtkada.Intl;
 
 with Adaview.Version;
 with Adaview.Config;
-with Adaview.Locale;
+with Adaview.Path;
 with Adaview.Debug;
 with Adaview.PS;
 with Adaview.Sys_Util;
@@ -54,7 +54,7 @@ procedure Adaview_Main is
 begin
    Setlocale;
    Text_Domain (Adaview.Version.Prg_Name);
-   Bind_Text_Domain (Adaview.Version.Prg_Name, Adaview.Locale.Path);
+   Bind_Text_Domain (Adaview.Version.Prg_Name, Adaview.Path.Locale);
 
    Dbg.Set_Flag (Dbg.TRACE);
 
@@ -122,6 +122,8 @@ begin
    if Matched_Idx = 0 and Argument_Count > 0 then
       Doc_Ctx.History_Changed := True;
    end if;
+
+   Adaview.Config.Load_Medias;
 
    Adaview.PS.Scan (Doc_Ctx);
 

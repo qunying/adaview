@@ -4,17 +4,17 @@
 APP := obj/adaview
 
 prefix :=/usr/local
-localedir :=${prefix}/share/locale
+
 DESTDIR :=
 .PHONY: all clean po
 
 all:
-	@./generate_locale_path.sh "${localedir}"
+	@./generate_path.sh "${prefix}"
 	@gprbuild -d -Padaview.gpr -XLIBRARY_TYPE=relocatable
 
 clean:
 	@echo "Cleaning build trees"
-	@gprclean -r -P adaview.gpr -XLIBRARY_TYPE=relocatable
+	@gprclean -r -q -P adaview.gpr -XLIBRARY_TYPE=relocatable
 
 po:
 	@$(MAKE) -C po

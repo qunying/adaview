@@ -158,6 +158,9 @@ package body Adaview.PS is
       Document_Media : constant String    := "DocumentMedia:";
       Doc_Paper_Size : constant String := "DocumentPaperSizes:";
 
+      function Eq
+        (Left, Right : String) return Boolean renames
+        Ada.Strings.Equal_Case_Insensitive;
    begin
       Dbg.Put_Line (Dbg.TRACE, "Enter " & GSI.Enclosing_Entity);
       if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
@@ -337,8 +340,20 @@ package body Adaview.PS is
          then
             Media.Name := Get_Text (File, Doc_Paper_Size'Length + 2);
             if Media.Name /= Null_Unbounded_String then
-               null;
+               -- Note: Papaer size coment uses down cased paper size
+               -- name.  Case insensitive compares are only used for
+               -- PaperSize comments.
+               for K in 1 .. Positive (Length (Medias)) loop
+                  if Eq (To_String (Media.Name), To_String (Medias (K).Name))
+                  then
+                     Media.Width  := Medias (K).Width;
+                     Media.Height := Medias (K).Height;
+                     Append (Ctx.Cur_Doc.Media, Media);
+                     exit;
+                  end if;
+               end loop;
             end if;
+
          end if;
       end loop;
       Close (File.File);

@@ -21,7 +21,6 @@
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces;            use Interfaces;
-with String_Format;         use String_Format;
 with Ada.Containers.Vectors;
 
 package Adaview is
@@ -68,22 +67,6 @@ package Adaview is
 
    type Media_Array_T is array (Positive range <>) of Media_T;
 
-   --!pp off
-   Media : constant Media_Array_T :=
-     ((+"Letter",      612,     792, 0),
-      (+"Legal",       612,   1_008, 0),
-      (+"Statement",   396,     612, 0),
-      (+"Tabloid",     792,   1_224, 0),
-      (+"Ledger",    1_224,     792, 0),
-      (+"Folio",       612,     936, 0),
-      (+"Quarto",      610,     780, 0),
-      (+"10x14",       720,   1_008, 0),
-      (+"14x24",     1_008,   1_728, 0),
-      (+"Executive",   540,     720, 0),
-      (+"A3",          842,   1_191, 0),
-      (+"A4",          595,     842, 0),
-      (+"A5",          420,     595, 0),
-      (+"B4",          729,   1_032, 0),
-      );
-   --!pp on
+   Medias : Media_Vector.Vector;
+
 end Adaview;

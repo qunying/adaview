@@ -25,6 +25,8 @@ with Ada.Directories; use Ada.Directories;
 with Ada.Streams.Stream_IO;
 with System.Address_To_Access_Conversions;
 
+with String_Format; use String_Format;
+
 with Adaview.Debug;
 with GNAT.MD5;
 
