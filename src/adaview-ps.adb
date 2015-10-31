@@ -119,9 +119,9 @@ package body Adaview.PS is
    pragma Inline (Is_Word);
 
    function Parse_Bounding_Box
-     (FD     :        File_Data_T;
-      Offset :        Integer;
-      Doc    : in out Doc_T) return Boolean;
+     (FD           :        File_Data_T;
+      Offset       :        Integer;
+      Bounding_Box : in out Bounding_Box_T) return Boolean;
 
    procedure Get_Number (Buf : String; Num1, Num2, Count : in out Integer);
 
@@ -130,6 +130,8 @@ package body Adaview.PS is
       Num1, Num2 : in out Float;
       Count      : in out Integer);
 
+   function Blank (FD : File_Data_T) return Boolean;
+
    ---------------------------------------------------------------------------
    procedure Scan (Ctx : in out Context_T) is
       use Ada.Containers;
@@ -137,26 +139,37 @@ package body Adaview.PS is
 
       type Pages_Set_T is (ATEND, NONE);
 
-      File           : File_Data_T;
-      Section_Len    : Unsigned_64;
-      Preread        : Boolean;
-      Media          : Media_T;
-      BB_Set         : Bounding_Box_Set_T := NONE;
-      Pages_Set      : Pages_Set_T        := NONE;
-      W, H           : Float              := 0.0;
-      Count          : Integer            := 0;
-      Max_Pages      : Integer            := 0;
-      I, J           : Integer            := 0;
-      End_Comment    : constant String    := "%EndComment";
-      Title          : constant String    := "Title:";
-      Creation_Date  : constant String    := "CreationDate:";
-      Bounding_Box   : constant String    := "BoundingBox:";
-      Orientation    : constant String    := "Orientation:";
-      Atend_Str      : constant String    := "(atend)";
-      Page_Order     : constant String    := "PageOrder:";
-      Pages          : constant String    := "Pages:";
-      Document_Media : constant String    := "DocumentMedia:";
-      Doc_Paper_Size : constant String := "DocumentPaperSizes:";
+      File              : File_Data_T;
+      Section_Len       : Unsigned_64;
+      Preread           : Boolean;
+      Page_Media_Set    : Boolean            := False;
+      Media             : Media_T;
+      BB_Set            : Bounding_Box_Set_T := NONE;
+      Page_BB_Set       : Bounding_Box_Set_T := NONE;
+      Pages_Set         : Pages_Set_T        := NONE;
+      W, H              : Float              := 0.0;
+      Count             : Integer            := 0;
+      Max_Pages         : Integer            := 0;
+      I, J              : Integer            := 0;
+      End_Comment       : constant String    := "%EndComment";
+      Title             : constant String    := "Title:";
+      Creation_Date     : constant String    := "CreationDate:";
+      Bounding_Box      : constant String    := "BoundingBox:";
+      Orientation       : constant String    := "Orientation:";
+      Atend_Str         : constant String    := "(atend)";
+      Page_Order        : constant String    := "PageOrder:";
+      Pages             : constant String    := "Pages:";
+      Document_Media    : constant String    := "DocumentMedia:";
+      Doc_Paper_Size    : constant String    := "DocumentPaperSizes:";
+      End_Comments      : constant String    := "EndComments";
+      Begin_Preview     : constant String    := "BeginPreview";
+      End_Preview       : constant String    := "EndPreview";
+      Begin_Defaults    : constant String    := "BeginDefaults";
+      End_Defaults      : constant String    := "EndDefaults";
+      Page_Orientation  : constant String    := "PageOrientation:";
+      Page_Media        : constant String    := "PageMedia:";
+      Page_Bounding_Box : constant String    := "PageBoundingBox:";
+      Name_Len          : Integer            := 0;
 
       function Eq
         (Left, Right : String) return Boolean renames
@@ -234,7 +247,7 @@ package body Adaview.PS is
             I := First_Word (File, Bounding_Box'Length + 2);
             if Is_Word (File, I, Atend_Str) then
                BB_Set := ATEND;
-            elsif Parse_Bounding_Box (File, I, Ctx.Cur_Doc) then
+            elsif Parse_Bounding_Box (File, I, Ctx.Cur_Doc.Bounding_Box) then
                BB_Set := SET;
             end if;
          elsif Ctx.Cur_Doc.Orientation = NONE
@@ -292,6 +305,7 @@ package body Adaview.PS is
          elsif Length (Ctx.Cur_Doc.Media) = 0
            and then Is_Comment (File, Document_Media, 2)
          then
+            Media.Used := 0;
             Media.Name := Get_Text (File, Document_Media'Length + 2);
             if Media.Name /= Null_Unbounded_String then
                Get_Number
@@ -335,16 +349,19 @@ package body Adaview.PS is
                end if;
             end loop;
             Increment (Section_Len, File.Line_Len);
-         elsif Length (Ctx.Cur_Doc.Media) = 0 and then
-           Is_Comment (File, Doc_Paper_Size, 2)
+         elsif Length (Ctx.Cur_Doc.Media) = 0
+           and then Is_Comment (File, Doc_Paper_Size, 2)
          then
+            Media.Used := 0;
             Media.Name := Get_Text (File, Doc_Paper_Size'Length + 2);
             if Media.Name /= Null_Unbounded_String then
                -- Note: Papaer size coment uses down cased paper size
                -- name.  Case insensitive compares are only used for
                -- PaperSize comments.
                for K in 1 .. Positive (Length (Medias)) loop
-                  if Eq (To_String (Media.Name), To_String (Medias (K).Name))
+                  if Eq
+                      (To_String (Media.Name),
+                       To_String (Medias (K).Name))
                   then
                      Media.Width  := Medias (K).Width;
                      Media.Height := Medias (K).Height;
@@ -352,10 +369,131 @@ package body Adaview.PS is
                      exit;
                   end if;
                end loop;
+               Name_Len := Length (Media.Name) + 1;
             end if;
-
+            loop
+               Media.Name :=
+                 Get_Text (File, Doc_Paper_Size'Length + 2 + Name_Len);
+               exit when Media.Name = Null_Unbounded_String;
+               for K in 1 .. Positive (Length (Medias)) loop
+                  if Eq
+                      (To_String (Media.Name),
+                       To_String (Medias (K).Name))
+                  then
+                     Media.Width  := Medias (K).Width;
+                     Media.Height := Medias (K).Height;
+                     Append (Ctx.Cur_Doc.Media, Media);
+                     exit;
+                  end if;
+               end loop;
+               Name_Len := Name_Len + Length (Media.Name) + 1;
+            end loop;
+            Preread := True;
+            while Read_Line (File)
+              and then DSC_Comment (File)
+              and then Is_Comment (File, "+", 2)
+            loop
+               Increment (Section_Len, File.Line_Len);
+               Name_Len := 3;
+               loop
+                  Media.Name := Get_Text (File, Name_Len);
+                  exit when Media.Name = Null_Unbounded_String;
+                  -- Note: Papaer size coment uses down cased paper size
+                  -- name.  Case insensitive compares are only used for
+                  -- PaperSize comments.
+                  Internal :
+                  for K in 1 .. Positive (Length (Medias)) loop
+                     if Eq
+                         (To_String (Media.Name),
+                          To_String (Medias (K).Name))
+                     then
+                        Media.Width  := Medias (K).Width;
+                        Media.Height := Medias (K).Height;
+                        Append (Ctx.Cur_Doc.Media, Media);
+                        exit;
+                     end if;
+                  end loop Internal;
+                  Name_Len := Name_Len + Length (Media.Name) + 1;
+               end loop;
+            end loop;
+            Increment (Section_Len, File.Line_Len);
          end if;
       end loop;
+
+      if DSC_Comment (File)
+        and then Is_Comment (File, End_Comments, 2)
+        and then Read_Line (File)
+      then
+         Increment (Section_Len, File.Line_Len);
+      end if;
+
+      -- endheader and lenheader
+
+      -- Optional Preview comments for encapsulated PostScript files
+      Section_Len := Unsigned_64 (File.Line_Len);
+
+      while Blank (File) and then Read_Line (File) loop
+         Increment (Section_Len, File.Line_Len);
+      end loop;
+
+      if Ctx.Cur_Doc.Kind = EPSF_FILE
+        and then DSC_Comment (File)
+        and then Is_Comment (File, Begin_Preview, 2)
+      then
+         while Read_Line (File) loop
+            exit when DSC_Comment (File)
+              and then Is_Comment (File, End_Preview, 2);
+         end loop;
+      end if;
+
+      while Read_Line (File) and then Blank (File) loop
+         null;
+      end loop;
+      if DSC_Comment (File) and then Is_Comment (File, Begin_Defaults, 2) then
+         while Read_Line (File)
+           and then not
+           (DSC_Comment (File) and then Is_Comment (File, End_Defaults, 2))
+         loop
+            if not DSC_Comment (File) then
+               null;
+            elsif Ctx.Cur_Doc.Default_Page_Orientation = NONE
+              and then Is_Comment (File, Page_Orientation, 2)
+            then
+               I := First_Word (File, Page_Orientation'Length + 2);
+               if Is_Word (File, I, "Portrait") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := PORTRAIT;
+               elsif Is_Word (File, I, "Landscape") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := LANDSCAPE;
+               elsif Is_Word (File, I, "SEASCAPE") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := SEASCAPE;
+               end if;
+            elsif not Page_Media_Set
+              and then Is_Comment (File, Page_Media, 2)
+            then
+               Media.Name := Get_Text (File, Page_Media'Length + 2);
+               for K in 1 .. Positive (Length (Medias)) loop
+                  if Media.Name = Medias (K).Name then
+                     Ctx.Cur_Doc.Default_Page_Media := Medias (K);
+                     Page_Media_Set                 := True;
+                     exit;
+                  end if;
+               end loop;
+            elsif Page_BB_Set = NONE
+              and then Is_Comment (File, Page_Bounding_Box, 2)
+            then
+               I := First_Word (File, Page_Bounding_Box'Length + 2);
+               if Parse_Bounding_Box (File, I, Ctx.Cur_Doc.Page_Bounding_Box) then
+                  Page_BB_Set := SET;
+               end if;
+            end if;
+         end loop;
+      end if;
+
+      -- Document Prolog
+      while Read_Line (File) and then Blank (File) loop
+         null;
+      end loop;
+      -- 1011 ps.c
       Close (File.File);
    end Scan;
 
@@ -509,9 +647,8 @@ package body Adaview.PS is
                end if;
             end if;
          else
-            if FD.Str_End
-              >= FD.Line_Begin + Num
-            then -- reading specified Num of chars
+            if FD.Str_End >= FD.Line_Begin + Num then
+               -- reading specified Num of chars
                FD.Line_End := FD.Line_Begin + Num;
                exit Outter;
             else
@@ -874,9 +1011,9 @@ package body Adaview.PS is
 
    ---------------------------------------------------------------------------
    function Parse_Bounding_Box
-     (FD     :        File_Data_T;
-      Offset :        Integer;
-      Doc    : in out Doc_T) return Boolean is
+     (FD           :        File_Data_T;
+      Offset       :        Integer;
+      Bounding_Box : in out Bounding_Box_T) return Boolean is
       Separator : constant String := " " & ACL.HT;
       Tokens    : Slice_Set;
    begin
@@ -889,10 +1026,10 @@ package body Adaview.PS is
          return False;
       end if;
 
-      Doc.Bounding_Box (1) := Integer'Value (Slice (Tokens, 1));
-      Doc.Bounding_Box (2) := Integer'Value (Slice (Tokens, 2));
-      Doc.Bounding_Box (3) := Integer'Value (Slice (Tokens, 3));
-      Doc.Bounding_Box (4) := Integer'Value (Slice (Tokens, 4));
+      Bounding_Box (1) := Integer'Value (Slice (Tokens, 1));
+      Bounding_Box (2) := Integer'Value (Slice (Tokens, 2));
+      Bounding_Box (3) := Integer'Value (Slice (Tokens, 3));
+      Bounding_Box (4) := Integer'Value (Slice (Tokens, 4));
       return True;
    end Parse_Bounding_Box;
 
@@ -940,5 +1077,23 @@ package body Adaview.PS is
    end Get_Number;
 
    ---------------------------------------------------------------------------
+   function Blank (FD : File_Data_T) return Boolean is
+      I : Integer := FD.Line_Begin;
+   begin
+      while I <= FD.Line_End loop
+         exit when FD.Str (I) /= ACL.Space and FD.Str (I) /= ACL.HT;
+         Increment (I);
+      end loop;
+      if I > FD.Line_End then
+         return True;
+      end if;
 
+      return FD.Str (I) = ACL.LF
+        or FD.Str (I) = ACL.CR
+        or
+        (FD.Str (I) = '%'
+         and then
+         (FD.Str (FD.Line_Begin) /= '%'
+          or else FD.Str (FD.Line_Begin + 1) /= '%'));
+   end Blank;
 end Adaview.PS;

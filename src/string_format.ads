@@ -32,8 +32,7 @@ package String_Format is
    Invalid_Index : exception;
    --!pp on
 
-   function "+"
-     (S : String) return Unbounded_String renames
+   function "+" (S : String) return Unbounded_String renames
      To_Unbounded_String;
 
    function Format_String

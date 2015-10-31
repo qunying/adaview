@@ -84,6 +84,8 @@ package body Adaview.Config is
    procedure Load_History (Ctx : in out Context_T);
    procedure Save_History (Ctx : in Context_T);
 
+   procedure Process_Media_File (M_File : File_Type);
+
    ---------------------------------------------------------------------------
    procedure Process_Options (Ctx : in out Context_T) is
       Error : aliased GError;
@@ -173,9 +175,9 @@ package body Adaview.Config is
       Conf_Path : Path_T;
       Home      : constant String := Value ("HOME");
       Data_Home : constant String :=
-           Value ("XDG_DATA_HOME", Home & "/.local/share");
+        Value ("XDG_DATA_HOME", Home & "/.local/share");
       Conf_Home : constant String :=
-           Value ("XDG_CONFIG_HOME", Home & "/.config");
+        Value ("XDG_CONFIG_HOME", Home & "/.config");
    begin
       -- form data and config home, follow the xdg guideline
       Data_Path := +(Data_Home & "/" & Prg_Name);
@@ -203,17 +205,17 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure Load_History (Ctx : in out Context_T) is
-      In_File   : File_Type;
+      His_File  : File_Type;
       Tokens    : Slice_Set;
       Separator : constant String := ":";
       Data_Line : Unbounded_String;
    begin
       Put_Line ("open history file:" & To_String (Ctx.Data_File));
-      Open (In_File, Ada.Text_IO.In_File, To_String (Ctx.Data_File));
+      Open (His_File, In_File, To_String (Ctx.Data_File));
 
       Read_Line :
       loop
-         Data_Line := Trim (Get_Line (In_File), Both);
+         Data_Line := Trim (Get_Line (His_File), Both);
 
          -- skip empty line
          if Length (Data_Line) = 0 then
@@ -270,8 +272,8 @@ package body Adaview.Config is
       when Ada.Text_IO.Name_Error =>
          null; -- ignore Name error
       when Ada.Text_IO.End_Error =>
-         if Is_Open (In_File) then
-            Close (In_File);
+         if Is_Open (His_File) then
+            Close (His_File);
          end if;
    end Load_History;
 
@@ -361,28 +363,28 @@ package body Adaview.Config is
    procedure Load_Medias is
       Home            : constant String := Value ("HOME");
       Medias_File     : constant String := "adaview_medias";
-      Sys_Medias_File : constant String := Adaview.Path.Share & "/" & Prg_Name & "/" & Medias_File;
+      Sys_Medias_File : constant String :=
+        Adaview.Path.Share & "/" & Prg_Name & "/" & Medias_File;
       User_Medias_File : constant String :=
-                           Value ("XDG_CONFIG_HOME", Home & "/.config") & "/" & Medias_File;
+        Value ("XDG_CONFIG_HOME", Home & "/.config") & "/" & Medias_File;
 
-      In_File           : File_Type;
-      Tokens            : Slice_Set;
-      Separator         : constant String := ":";
-      Data_Line         : Unbounded_String;
-      Fail_Count        : Integer := 0;
+      M_File     : File_Type;
+      Fail_Count : Integer := 0;
    begin
       begin
          Put_Line ("open medias file:" & Sys_Medias_File);
-         Open (In_File, Ada.Text_IO.In_File, Sys_Medias_File);
-         Close (In_File);
+         Open (M_File, In_File, Sys_Medias_File);
+         Process_Media_File (M_File);
+         Close (M_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
       end;
       begin
          Put_Line ("open medias file:" & User_Medias_File);
-         Open (In_File, Ada.Text_IO.In_File, User_Medias_File);
-         Close (In_File);
+         Open (M_File, In_File, User_Medias_File);
+         Process_Media_File (M_File);
+         Close (M_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
@@ -391,12 +393,49 @@ package body Adaview.Config is
       if Fail_Count = 2 then
          begin
             Put_Line ("open medias file:" & Medias_File);
-            Open (In_File, Ada.Text_IO.In_File, Medias_File);
-            Close (In_File);
+            Open (M_File, In_File, Medias_File);
+            Process_Media_File (M_File);
+            Close (M_File);
          exception
             when Ada.Text_IO.Name_Error =>
                Put_Line (+"No medias file found.");
          end;
       end if;
    end Load_Medias;
+
+   ---------------------------------------------------------------------------
+   procedure Process_Media_File (M_File : File_Type) is
+      Tokens    : Slice_Set;
+      Separator : constant String := " ";
+      Data_Line : Unbounded_String;
+      Media     : Media_T;
+   begin
+      Read_Line :
+      loop
+         Data_Line := Trim (Get_Line (M_File), Both);
+         if Length (Data_Line) = 0
+           or else Element (Data_Line, 1) = '#'
+         -- # aa the first denotes a comment
+         then
+            goto continue;
+         end if;
+         GNAT.String_Split.Create
+           (S          => Tokens,
+            From       => To_String (Data_Line),
+            Separators => Separator,
+            Mode       => Multiple);
+         if Slice_Count (Tokens) >= 3 then
+            Media.Name   := +Slice (Tokens, 1);
+            Media.Width  := Integer'Value (Slice (Tokens, 2));
+            Media.Height := Integer'Value (Slice (Tokens, 3));
+            Media.Used   := 0;
+            Media_Vector.Append (Medias, Media);
+         end if;
+         <<continue>>
+         null;
+      end loop Read_Line;
+   exception
+      when Ada.Text_IO.End_Error =>
+         null; -- ignore End_Error;
+   end Process_Media_File;
 end Adaview.Config;

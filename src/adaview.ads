@@ -40,29 +40,32 @@ package Adaview is
    type Media_T is record
       Name          : Unbounded_String := Null_Unbounded_String;
       Width, Height : Integer;
-      Used          : Integer := 0;
+      Used          : Integer          := 0;
    end record;
 
    package Media_Vector is new Ada.Containers.Vectors
      (Element_Type => Media_T,
       Index_Type   => Positive);
    type Doc_T is record
-      Name          : Path_T           := Null_Unbounded_String;
-      Temp_Name     : Path_T           := Null_Unbounded_String;
-      DCS_Name      : Path_T           := Null_Unbounded_String;
-      Backend       : Backend_T        := GHOSTSCRIPT;
-      Kind          : Doc_Kind_T       := UNKNOWN_FILE;
-      Cur_Page      : Natural          := 0;
-      Total_Page    : Natural          := 0;
-      Header_Pos    : Unsigned_64      := 0;
-      Title         : Unbounded_String := Null_Unbounded_String;
-      Creation_Date : Unbounded_String := Null_Unbounded_String;
-      Date          : Unbounded_String := Null_Unbounded_String;
-      Bounding_Box  : Bounding_Box_T;
-      Orientation   : Orientation_T    := NONE;
-      Page_Order    : Page_Order_T     := NONE;
-      Checksum      : String (1 .. MD5_Length);
-      Media         : Media_Vector.Vector;
+      Name                     : Path_T           := Null_Unbounded_String;
+      Temp_Name                : Path_T           := Null_Unbounded_String;
+      DCS_Name                 : Path_T           := Null_Unbounded_String;
+      Backend                  : Backend_T        := GHOSTSCRIPT;
+      Kind                     : Doc_Kind_T       := UNKNOWN_FILE;
+      Cur_Page                 : Natural          := 0;
+      Total_Page               : Natural          := 0;
+      Header_Pos               : Unsigned_64      := 0;
+      Title                    : Unbounded_String := Null_Unbounded_String;
+      Creation_Date            : Unbounded_String := Null_Unbounded_String;
+      Date                     : Unbounded_String := Null_Unbounded_String;
+      Bounding_Box             : Bounding_Box_T;
+      Page_Bounding_Box        : Bounding_Box_T;
+      Orientation              : Orientation_T    := NONE;
+      Page_Order               : Page_Order_T     := NONE;
+      Default_Page_Orientation : Orientation_T    := NONE;
+      Checksum                 : String (1 .. MD5_Length);
+      Media                    : Media_Vector.Vector;
+      Default_Page_Media       : Media_T;
    end record;
 
    type Media_Array_T is array (Positive range <>) of Media_T;
