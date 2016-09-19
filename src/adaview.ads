@@ -43,9 +43,21 @@ package Adaview is
       Used          : Integer          := 0;
    end record;
 
+   type Page_T is record
+      Label : Unbounded_String := Null_Unbounded_String;
+      Bounding_Box : Bounding_Box_T;
+      Orientation  : Orientation_T;
+      Start, The_End, Len : Unsigned_64;
+   end record;
+
    package Media_Vector is new Ada.Containers.Vectors
      (Element_Type => Media_T,
       Index_Type   => Positive);
+
+   package Page_Vector is new Ada.Containers.Vectors
+     (Element_Type => Page_T,
+      Index_Type   => Positive);
+
    type Doc_T is record
       Name                     : Path_T           := Null_Unbounded_String;
       Temp_Name                : Path_T           := Null_Unbounded_String;
@@ -66,6 +78,7 @@ package Adaview is
       Checksum                 : String (1 .. MD5_Length);
       Media                    : Media_Vector.Vector;
       Default_Page_Media       : Media_T;
+      Page                     : Page_Vector.Vector;
    end record;
 
    type Media_Array_T is array (Positive range <>) of Media_T;

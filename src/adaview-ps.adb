@@ -132,6 +132,8 @@ package body Adaview.PS is
 
    function Blank (FD : File_Data_T) return Boolean;
 
+   function Get_Number (FD : File_Data_T; Offset : Integer) return Integer;
+
    ---------------------------------------------------------------------------
    procedure Scan (Ctx : in out Context_T) is
       use Ada.Containers;
@@ -139,41 +141,57 @@ package body Adaview.PS is
 
       type Pages_Set_T is (ATEND, NONE);
 
-      File              : File_Data_T;
-      Section_Len       : Unsigned_64;
-      Preread           : Boolean;
-      Page_Media_Set    : Boolean            := False;
-      Media             : Media_T;
-      BB_Set            : Bounding_Box_Set_T := NONE;
-      Page_BB_Set       : Bounding_Box_Set_T := NONE;
-      Pages_Set         : Pages_Set_T        := NONE;
-      W, H              : Float              := 0.0;
-      Count             : Integer            := 0;
-      Max_Pages         : Integer            := 0;
-      I, J              : Integer            := 0;
-      End_Comment       : constant String    := "%EndComment";
-      Title             : constant String    := "Title:";
-      Creation_Date     : constant String    := "CreationDate:";
-      Bounding_Box      : constant String    := "BoundingBox:";
-      Orientation       : constant String    := "Orientation:";
-      Atend_Str         : constant String    := "(atend)";
-      Page_Order        : constant String    := "PageOrder:";
-      Pages             : constant String    := "Pages:";
-      Document_Media    : constant String    := "DocumentMedia:";
-      Doc_Paper_Size    : constant String    := "DocumentPaperSizes:";
-      End_Comments      : constant String    := "EndComments";
-      Begin_Preview     : constant String    := "BeginPreview";
-      End_Preview       : constant String    := "EndPreview";
-      Begin_Defaults    : constant String    := "BeginDefaults";
-      End_Defaults      : constant String    := "EndDefaults";
-      Page_Orientation  : constant String    := "PageOrientation:";
-      Page_Media        : constant String    := "PageMedia:";
-      Page_Bounding_Box : constant String    := "PageBoundingBox:";
-      Name_Len          : Integer            := 0;
+      File                 : File_Data_T;
+      Section_Len          : Unsigned_64;
+      Preread              : Boolean;
+      Page_Media_Set       : Boolean            := False;
+      Media                : Media_T;
+      BB_Set               : Bounding_Box_Set_T := NONE;
+      Page_BB_Set          : Bounding_Box_Set_T := NONE;
+      Pages_Set            : Pages_Set_T        := NONE;
+      W, H                 : Float              := 0.0;
+      Count                : Integer            := 0;
+      Max_Pages            : Integer            := 0;
+      Next_Page, This_Page : Integer            := 0;
+      I, J                 : Integer            := 0;
+
+      Name_Len : Integer := 0;
+      Label    : Unbounded_String;
+
+      Ignore            : Boolean := False;
+      Begin_Setup_Found : Boolean := False;
+      Respect_EOF       : Boolean := False;
 
       function Eq
         (Left, Right : String) return Boolean renames
         Ada.Strings.Equal_Case_Insensitive;
+
+      End_Comment       : constant String := "%EndComment";
+      Title             : constant String := "Title:";
+      Creation_Date     : constant String := "CreationDate:";
+      Bounding_Box      : constant String := "BoundingBox:";
+      Orientation       : constant String := "Orientation:";
+      Atend_Str         : constant String := "(atend)";
+      Page_Order        : constant String := "PageOrder:";
+      Pages             : constant String := "Pages:";
+      Document_Media    : constant String := "DocumentMedia:";
+      Doc_Paper_Size    : constant String := "DocumentPaperSizes:";
+      End_Comments      : constant String := "EndComments";
+      Begin_Preview     : constant String := "BeginPreview";
+      End_Preview       : constant String := "EndPreview";
+      Begin_Defaults    : constant String := "BeginDefaults";
+      End_Defaults      : constant String := "EndDefaults";
+      Page_Orientation  : constant String := "PageOrientation:";
+      Page_Media        : constant String := "PageMedia:";
+      Page_Bounding_Box : constant String := "PageBoundingBox:";
+      Begin_Setup       : constant String := "BeginSetup";
+      Page              : constant String := "Page:";
+      Trailer           : constant String := "Trailer";
+      EOF_Str           : constant String := "EOF";
+      End_Prolog        : constant String := "EndProlog";
+      End_Setup         : constant String := "EndSetup";
+      Paper_Size        : constant String := "PaperSize:";
+
    begin
       Dbg.Put_Line (Dbg.TRACE, "Enter " & GSI.Enclosing_Entity);
       if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
@@ -482,7 +500,11 @@ package body Adaview.PS is
               and then Is_Comment (File, Page_Bounding_Box, 2)
             then
                I := First_Word (File, Page_Bounding_Box'Length + 2);
-               if Parse_Bounding_Box (File, I, Ctx.Cur_Doc.Page_Bounding_Box) then
+               if Parse_Bounding_Box
+                   (File,
+                    I,
+                    Ctx.Cur_Doc.Page_Bounding_Box)
+               then
                   Page_BB_Set := SET;
                end if;
             end if;
@@ -493,7 +515,171 @@ package body Adaview.PS is
       while Read_Line (File) and then Blank (File) loop
          null;
       end loop;
-      -- 1011 ps.c
+
+      if not
+        (DSC_Comment (File)
+         and then
+         (Is_Comment (File, Begin_Setup, 2)
+          or Is_Comment (File, Page, 2)
+          or Is_Comment (File, Trailer, 2)
+          or Is_Comment (File, EOF_Str, 2)))
+      then
+         Begin_Setup_Found := True;
+         Preread           := True;
+
+         while (Preread or else Read_Line (File))
+           and then not
+           (DSC_Comment (File)
+            and then
+            (Is_Comment (File, End_Prolog, 2)
+             or Is_Comment (File, Begin_Setup, 2)
+             or Is_Comment (File, Page, 2)
+             or Is_Comment (File, Trailer, 2)
+             or Is_Comment (File, EOF_Str, 2)))
+         loop
+            Preread := False;
+         end loop;
+
+         if DSC_Comment (File)
+           and then Is_Comment (File, End_Prolog, 2)
+           and then Read_Line (File)
+         then
+            null;
+         end if;
+      end if;
+
+      -- Document Setup, Page Defaults found here for Version 2 files
+      while Blank (File) and then Read_Line (File) loop
+         null;
+      end loop;
+
+      if not
+        (DSC_Comment (File)
+         and then
+         (Is_Comment (File, Page, 2)
+          or Is_Comment (File, Trailer, 2)
+          or (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
+      then
+         Preread := True;
+
+         while (Preread or else Read_Line (File))
+           and then not
+           (DSC_Comment (File)
+            and then
+            (Is_Comment (File, End_Setup, 2)
+             or Is_Comment (File, Page, 2)
+             or Is_Comment (File, Trailer, 2)
+             or (Respect_EOF and then Is_Comment (File, EOF_Str, 2))))
+         loop
+            Preread := False;
+
+            if not DSC_Comment (File) then
+               null;
+            elsif Ctx.Cur_Doc.Default_Page_Orientation = NONE
+              and then Is_Comment (File, Page_Orientation, 2)
+            then
+               I := First_Word (File, Page_Orientation'Length + 2);
+               if Is_Word (File, I, "Portrait") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := PORTRAIT;
+               elsif Is_Word (File, I, "Landscape") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := LANDSCAPE;
+               elsif Is_Word (File, I, "Seascape") then
+                  Ctx.Cur_Doc.Default_Page_Orientation := SEASCAPE;
+               end if;
+            elsif not Page_Media_Set
+              and then Is_Comment (File, Paper_Size, 2)
+            then
+               Media.Name := Get_Text (File, Paper_Size'Length + 2);
+               -- Note: Paper size comment uses down cased paper size
+               -- name.  Case insensitive compares are only used for
+               -- PaperSize comments.
+               for K in 1 .. Positive (Length (Medias)) loop
+                  if Eq
+                      (To_String (Media.Name),
+                       To_String (Medias (K).Name))
+                  then
+                     Ctx.Cur_Doc.Default_Page_Media := Medias (K);
+                     Page_Media_Set                 := True;
+                     exit;
+                  end if;
+               end loop;
+            elsif Page_BB_Set = NONE
+              and then Is_Comment (File, Page_Bounding_Box, 2)
+            then
+               I := First_Word (File, Page_Bounding_Box'Length + 2);
+               if Parse_Bounding_Box
+                   (File,
+                    I,
+                    Ctx.Cur_Doc.Page_Bounding_Box)
+               then
+                  Page_BB_Set := SET;
+               end if;
+            end if;
+         end loop;
+
+         if DSC_Comment (File)
+           and then Is_Comment (File, End_Setup, 2)
+           and then Read_Line (File)
+         then
+            null;
+         end if;
+      end if;
+      -- BEGIN Windows NT fix ###jp###
+      -- Mark Pfeifer (pfeiferm%ppddev@comet.cmis.abbott.com) told me
+    -- about problems when viewing Windows NT 3.51 generated postscript
+    -- files with gv. He found that the relevant postscript files
+    -- show important postscript code after the '%%EndSetup' and before
+    -- the first page comment '%%Page: x y'.
+      if Begin_Setup_Found then
+         while not
+           (DSC_Comment (File)
+            and then
+            (Is_Comment (File, End_Setup, 2)
+             or Is_Comment (File, Page, 2)
+             or Is_Comment (File, Trailer, 2)
+             or (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
+         loop
+            exit when not Read_Line (File);
+         end loop;
+      end if;
+      -- END Windows NT fix ###jp###
+
+      -- Individual Pages
+      while Blank (File) and then Read_Line (File) loop
+         null;
+      end loop;
+
+      <<NEW_PAGE>>
+      while DSC_Comment (File) and then Is_Comment (File, Page, 2) loop
+         if Max_Pages = 0 then
+            Max_Pages := 1;
+         end if;
+         Label := Get_Text (File, Page'Length + 2);
+         I     := First_Word (File, Page'Length + 2 + Length (Label));
+         J     := Get_Number (File, I);
+         if J > 0 then
+            This_Page := J;
+         end if;
+
+         if Next_Page = 1 then
+            Ignore := This_Page /= 1;
+         end if;
+
+         if (not Ignore) and then This_Page /= Next_Page then
+            Decrement (Ctx.Cur_Doc.Total_Page);
+            goto CONTINUE_PAGE;
+         end if;
+         Increment (Next_Page);
+
+         if Ctx.Cur_Doc.Total_Page = Max_Pages then
+            Increment (Max_Pages);
+         end if;
+         Page_BB_Set := NONE;
+
+         <<CONTINUE_PAGE>>
+         null;
+      end loop;
+
       Close (File.File);
    end Scan;
 
@@ -1096,4 +1282,22 @@ package body Adaview.PS is
          (FD.Str (FD.Line_Begin) /= '%'
           or else FD.Str (FD.Line_Begin + 1) /= '%'));
    end Blank;
+
+   ---------------------------------------------------------------------------
+   function Get_Number (FD : File_Data_T; Offset : Integer) return Integer is
+      End_Idx : Integer := Offset;
+   begin
+      while End_Idx <= FD.Line_End and Is_Digit (FD.Str (End_Idx)) loop
+         Increment (End_Idx);
+      end loop;
+
+      if End_Idx > FD.Line_End then
+         return -1;
+      end if;
+      if not Is_Digit (FD.Str (End_Idx)) then
+         Decrement (End_Idx);
+      end if;
+
+      return Integer'Value (String (FD.Str (Offset .. End_Idx)));
+   end Get_Number;
 end Adaview.PS;
