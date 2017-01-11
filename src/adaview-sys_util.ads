@@ -30,7 +30,7 @@ package Adaview.Sys_Util is
    procedure mkstemp (filename : in out String);
    -- thin binding around C's mkstemp function, except the return FD is closed.
 
-   type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ);
+   type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ, ZSTD);
 
    procedure Get_File_MD5
      (File_Name : in     Unbounded_String;

@@ -624,12 +624,13 @@ package body Adaview.PS is
             null;
          end if;
       end if;
+
       -- BEGIN Windows NT fix ###jp###
       -- Mark Pfeifer (pfeiferm%ppddev@comet.cmis.abbott.com) told me
-    -- about problems when viewing Windows NT 3.51 generated postscript
-    -- files with gv. He found that the relevant postscript files
-    -- show important postscript code after the '%%EndSetup' and before
-    -- the first page comment '%%Page: x y'.
+      -- about problems when viewing Windows NT 3.51 generated postscript
+      -- files with gv. He found that the relevant postscript files
+      -- show important postscript code after the '%%EndSetup' and before
+      -- the first page comment '%%Page: x y'.
       if Begin_Setup_Found then
          while not
            (DSC_Comment (File)

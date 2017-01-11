@@ -36,6 +36,7 @@ package body Adaview.Sys_Util is
    Cmd_Gzip  : aliased String := "gzip";
    Cmd_Bzip2 : aliased String := "bzip2";
    Cmd_Xz    : aliased String := "xz";
+   Cmd_ZStd  : aliased String := "zstd";
 
    type Byte_T is mod 2**8;
    type Byte_String_T is array (Positive range <>) of Byte_T;
@@ -83,7 +84,7 @@ package body Adaview.Sys_Util is
       mkstemp (Template_Name);
 
       Dbg.Put_Line (Dbg.TRACE, "got temp file " & Template_Name);
-      -- remove the trailling NUL character
+      -- remove the trailing NUL character
       case Compress_Type is
          when COMPRESS | GZIP =>
             CMD_Ptr := Cmd_Gzip'Access;
@@ -91,6 +92,8 @@ package body Adaview.Sys_Util is
             CMD_Ptr := Cmd_Bzip2'Access;
          when XZ =>
             CMD_Ptr := Cmd_Xz'Access;
+         when ZSTD =>
+            CMD_Ptr := Cmd_ZStd'Access;
          when others =>
             null;
       end case;
@@ -162,6 +165,8 @@ package body Adaview.Sys_Util is
                                                   Character'Pos ('X'),
                                                   Character'Pos ('Z'),
                                                   16#00#);
+      ZStd_Magic     : constant Byte_String_T := (16#28#, 16#b5#,
+                                                  16#2f#, 16#fd#);
       Compress_Type  : Compress_T := NO_COMPRESS;
 
       subtype Sea_T is Stream_Element_Array (1 .. Data_Block_Size);
@@ -186,6 +191,8 @@ package body Adaview.Sys_Util is
             Compress_Type := BZIP2;
          elsif Data (1 .. Xz_Magic'Last) = Xz_Magic then
             Compress_Type := XZ;
+         elsif Data (1 .. ZStd_Magic'Last) = ZStd_Magic then
+            Compress_Type := ZSTD;
          end if;
       end if;
       Dbg.Put_Line

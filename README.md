@@ -15,4 +15,4 @@ Some plan features:
      restore them.
   4. Use MD5 sum for recently read document, so even moving the file
      to another location could still matched the same settings.
-  5. View gzip/bzip2/xz compressed file.
+  5. View gzip/bzip2/xz/zstd compressed file.
