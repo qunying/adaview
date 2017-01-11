@@ -968,7 +968,6 @@ package body Adaview.PS is
    begin
       if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
          -- handle wrong password or need password case ...
-         --!pp off
          if Index (Current_Line,
                    "This file requires a password for access.") > 0
            or Index (Current_Line, "Password did not work.") > 0
@@ -977,7 +976,6 @@ package body Adaview.PS is
             Close (File.File);
             raise Need_Password with "PDF file need password.";
          end if;
-         --!pp on
       end if;
    end Test_For_PDF_Password;
 

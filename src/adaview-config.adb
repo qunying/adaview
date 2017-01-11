@@ -362,29 +362,32 @@ package body Adaview.Config is
    ---------------------------------------------------------------------------
    procedure Load_Medias is
       Home            : constant String := Value ("HOME");
-      Medias_File     : constant String := "adaview_medias";
+      Medias_File     : constant String := "medias";
       Sys_Medias_File : constant String :=
         Adaview.Path.Share & "/" & Prg_Name & "/" & Medias_File;
       User_Medias_File : constant String :=
-        Value ("XDG_CONFIG_HOME", Home & "/.config") & "/" & Medias_File;
+        Value ("XDG_CONFIG_HOME", Home & "/.config") & "/" & Prg_Name & "/"
+        & Medias_File;
 
       M_File     : File_Type;
       Fail_Count : Integer := 0;
-   begin
+
+      procedure Open_Media_File (Name : String) is
       begin
-         Put_Line ("open medias file:" & Sys_Medias_File);
-         Open (M_File, In_File, Sys_Medias_File);
+         Put_Line ("open medias file: " & Name);
+         Open (M_File, In_File, Name);
          Process_Media_File (M_File);
          Close (M_File);
+      end;
+   begin
+      begin
+	 Open_Media_File (Sys_Medias_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
       end;
       begin
-         Put_Line ("open medias file:" & User_Medias_File);
-         Open (M_File, In_File, User_Medias_File);
-         Process_Media_File (M_File);
-         Close (M_File);
+	 Open_Media_File (User_Medias_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
@@ -392,10 +395,7 @@ package body Adaview.Config is
       -- only try to open a local medias file when all the above failed.
       if Fail_Count = 2 then
          begin
-            Put_Line ("open medias file:" & Medias_File);
-            Open (M_File, In_File, Medias_File);
-            Process_Media_File (M_File);
-            Close (M_File);
+	    Open_Media_File (Medias_File);
          exception
             when Ada.Text_IO.Name_Error =>
                Put_Line (+"No medias file found.");

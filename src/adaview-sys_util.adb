@@ -94,10 +94,8 @@ package body Adaview.Sys_Util is
          when others =>
             null;
       end case;
-      --!pp off
       Ret := system (CMD_Ptr.all & " -dc " & To_String (File_Name) & " > "
                      & Template_Name);
-      --!pp on
       Dbg.Put_Line (Dbg.TRACE, "decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
       if Ret /= 0 or else Size (Template_Name) = 0 then
@@ -118,7 +116,6 @@ package body Adaview.Sys_Util is
       Ret           : Integer;
    begin
       mkstemp (Template_Name);
-      --!pp off
       if Length (Password) > 0 then
          Ret := system ("gs -P- -dSAFER -dDELAYSAFER -dNODISPLAY "
                         & "-dQUIET -sPDFname=" & To_String (PDF_File)
@@ -131,7 +128,6 @@ package body Adaview.Sys_Util is
                         & " -sDSCname=" & Template_Name
                         & " pdf2dsc.ps -c quit");
       end if;
-      --!pp on
 
       Dbg.Put_Line (Dbg.TRACE, "PDF to DSC result: " & Integer'Image (Ret));
       -- DSC file have zero length, consider failed.
@@ -155,7 +151,6 @@ package body Adaview.Sys_Util is
       Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
 
-      --!pp off
       Compress_Magic : constant Byte_String_T := (16#1F#, 16#9d#);
       Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
       Bzip2_Magic    : constant Byte_String_T := (Character'Pos ('B'),
@@ -168,7 +163,6 @@ package body Adaview.Sys_Util is
                                                   Character'Pos ('Z'),
                                                   16#00#);
       Compress_Type  : Compress_T := NO_COMPRESS;
-      --!pp on
 
       subtype Sea_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new Standard.System.Address_To_Access_Conversions

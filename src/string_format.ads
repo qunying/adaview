@@ -27,10 +27,8 @@ package String_Format is
    type UString_Array is array (Positive range <>) of Unbounded_String;
    Null_UString_Array : UString_Array (2 .. 1);
 
-   --!pp off
    No_Element    : exception;
    Invalid_Index : exception;
-   --!pp on
 
    function "+" (S : String) return Unbounded_String renames
      To_Unbounded_String;
