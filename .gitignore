@@ -3,7 +3,7 @@
 *.pot
 *.npp
 *.gmo
-adaview-locale.ads
+adaview-path.ads
 */obj/*
 obj/*
 *~

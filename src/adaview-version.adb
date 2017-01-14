@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- Adaview is free software; you can redistribute it and/or modify      --
 -- it under the terms of the GNU General Public License as published by      --
@@ -33,7 +33,7 @@ package body Adaview.Version is
    ---------------------------------------------------------------------------
    function Get_Copyright return  Glib.UTF8_String is
    begin
-      return -"Copyright (C) 2014-2015 Zhu Qun-Ying";
+      return -"Copyright (C) 2014-2017 Zhu Qun-Ying";
    end Get_Copyright;
 
    ---------------------------------------------------------------------------
