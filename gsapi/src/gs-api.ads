@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- GhostScript API Ada binding                                               --
 --                                                                           --
--- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- Public API for Ghostscript interpreter                                    --
 -- Current problems:                                                         --
@@ -40,14 +40,21 @@ package GS.API is
 
    type Revision_T is limited private;
 
+   ARG_ENCODING_LOCAL   : constant := 0;
+   ARG_ENCODING_UTF8    : constant := 1;
+   ARG_ENCODING_UTF16LE : constant := 2;
+
    function Revision (Rev : access Revision_T; Len : int) return Integer;
    pragma Import (C, Revision, "gsapi_revision");
-   -- Get version numbers and strings This is safe to call at any time. You
-   -- should call this first to make sure that the correct version of the
-   -- Ghostscript is being used. pr is a pointer to a revision structure. len
-   -- is the size of this structure in bytes. Returns 0 if OK, or if len too
-   -- small (additional parameters have been added to the structure) it will
-   -- return the required size of the structure.
+   -- This function returns the revision numbers and strings of the
+   -- Ghostscript interpreter library;
+   -- This is safe to call at any time.  You should call this first to make
+   -- sure that the correct version of the Ghostscript is being used.
+   -- Rev is a pointer to a revision record.
+   -- len is the size of this record in bytes.
+   -- Returns 0 if OK, or if len too small (additional parameters
+   -- have been added to the structure) it will return the required
+   -- size of the structure.
 
    function Get_Product (Rev : Revision_T) return String;
    pragma Inline (Get_Product);
@@ -77,22 +84,23 @@ package GS.API is
      (Instance_Ptr   : access Instance_T;
       Caller_Handler : System.Address) return Code_T;
    pragma Import (C, New_Instance, "gsapi_new_instance");
-   -- Create a new instance of Ghostscript. This instance is passed to most
-   -- other API functions. The caller_handle will be provided to callback
-   -- functions.
+   -- Create a new instance of Ghostscript.
+   -- This instance is passed to most other API functions.
+   -- The caller_handle will be provided to callback functions.
    -- WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
    --  Ghostscript supports only one instance.
    --  The current implementation uses a global static instance
    --  counter to make sure that only a single instance is used.
    --  If you try to create two instances, the second attempt
-   --  will return < 0 and set pinstance to NULL.
+   --  will return < 0 and set Instance_Ptr to NULL.
    -- WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 
    procedure Delete_Instance (instance : Instance_T);
    pragma Import (C, Delete_Instance, "gsapi_delete_instance");
-   -- Destroy an instance of Ghostscript Before you call this, Ghostscript must
-   -- have finished. If Ghostscript has been initialised, you must call
-   -- gsapi.gsapi_exit() before gsapi_Delete_Instance.
+   -- Destroy an instance of Ghostscript.
+   -- Before you call this, Ghostscript must have finished.
+   -- If Ghostscript has been initialised, you must call
+   -- GS.API.GSAPI_Exit() before GS.API.Delete_Instance.
 
    type Std_Cb_Fn_T is access function
      (Caller_Handle : System.Address;
@@ -120,10 +128,9 @@ package GS.API is
       Poll_Fn  : Poll_Cb_Fn_T) return Code_T;
    pragma Import (C, Set_Poll, "gsapi_set_poll");
    -- Set the callback function for polling.
-   -- This is used for handling window events or cooperative
-   -- multitasking.  This function will only be called if
-   -- Ghostscript was compiled with CHECK_INTERRUPTS
-   -- as described in gpcheck.h.
+   -- This is used for handling window events or cooperative multitasking.
+   -- This function will only be called if Ghostscript was compiled with
+   -- CHECK_INTERRUPTS as described in gpcheck.h.
    -- The polling function should return 0 if all is well,
    -- and negative if it wants ghostscript to abort.
    -- The polling function must be fast.
@@ -137,6 +144,30 @@ package GS.API is
    -- after GS.API.New_Instance() and before GS.API.init_with_args().
    -- See gdevdisp.h for more details.
 
+   -- function Set_Default_Device_List();
+   -- Set the string containing the list of default device names
+   -- for example "display x11alpha x11 bbox". Allows the calling
+   -- application to influence which device(s) gs will try in order
+   -- to select the default device
+   --
+   -- *Must* be called after GS.API.New_Instance() and before
+   -- GS.API.Init_With_Args().
+
+   -- function Get_Default_Devlice_List();
+   -- Returns a pointer to the current default device string
+   -- *Must* be called after gsapi_new_instance().
+
+   function Set_Arg_Encoding
+     (Instance : Instance_T;
+      Encoding : int) return Code_T;
+   pragma Import (C, Set_Arg_Encoding, "gsapi_set_arg_encoding");
+   -- Set the encoding used for the args. By default we assume
+   -- 'local' encoding. For windows this equates to whatever the current
+   -- codepage is. For linux this is utf8.
+   --
+   -- Use of this API (GS.API) with 'local' encodings (and hence without
+   -- calling this function) is now deprecated!
+
    function Init_With_Args
      (Instance : Instance_T;
       Argc     : int;
@@ -146,18 +177,18 @@ package GS.API is
    -- This calls gs_main_init_with_args() in imainarg.c
    -- 1. If quit or EOF occur during gsapi_init_with_args(),
    --    the return value will be e_Quit.  This is not an error.
-   --    You must call gsapi_exit() and must not call any other
+   --    You must call GSAPI_Exit() and must not call any other
    --    gsapi_XXX functions.
    -- 2. If usage info should be displayed, the return value will be e_Info
-   --    which is not an error.  Do not call gsapi_exit().
+   --    which is not an error.  Do not call GSAPI_Exit().
    -- 3. Under normal conditions this returns 0.  You would then
    --    call one or more gsapi_run_*() functions and then finish
-   --    with gsapi_exit().
+   --    with GSAPI_Exit().
 
    -- The gsapi_run_* functions are like gs_main_run_* except
    -- that the error_object is omitted.
    -- If these functions return <= -100, either quit or a fatal
-   -- error has occured.  You then call gsapi_exit() next.
+   -- error has occured.  You then call GSAPI_Exit() next.
    -- The only exception is run_string_continue()
    -- which will return e_NeedInput if all is well.
 
@@ -203,12 +234,12 @@ package GS.API is
       Pexit_Code  : access int) return Code_T;
    pragma Import (C, Run_File, "gsapi_run_file");
 
-   procedure Gsapi_Exit (instance : Instance_T);
-   pragma Import (C, Gsapi_Exit, "gsapi_exit");
+   procedure GSAPI_Exit (instance : Instance_T);
+   pragma Import (C, GSAPI_Exit, "gsapi_exit");
    -- Exit the interpreter.
-   -- This must be called on shutdown if gsapi.init_with_args()
-   -- has been called, and just before gsapi.Delete_Instance().
-   -- "gsapi_" is added as prefix to avoid the crash with Ada's keyword.
+   -- This must be called on shutdown if GS.API.Init_With_Args()
+   -- has been called, and just before GS.API.Delete_Instance().
+   -- "GSAPI_" is added as prefix to avoid the crash with Ada's keyword exit
 
    -- no gsapi_set_visual_tracer for now
 private
@@ -222,3 +253,4 @@ private
    end record;
    pragma Convention (C_Pass_By_Copy, Revision_T);
 end GS.API;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

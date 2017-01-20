@@ -86,3 +86,4 @@ package Adaview is
    Medias : Media_Vector.Vector;
 
 end Adaview;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

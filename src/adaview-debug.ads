@@ -36,3 +36,4 @@ package Adaview.Debug is
      (In_Flag : Flag;
       Count   : Ada.Text_IO.Positive_Count := 1);
 end Adaview.Debug;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- GhostScript API Ada binding                                               --
 --                                                                           --
--- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -22,3 +22,4 @@
 package GS is
    pragma Pure;
 end GS;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

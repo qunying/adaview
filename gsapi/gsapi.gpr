@@ -10,7 +10,7 @@ project Gsapi is
    end Ide;
 
    package Pretty_Printer is
-      for Default_Switches ("ada") use ("--no-separate-is", "--no-separate-loop-then", "-c2", "-l2");
+      for Default_Switches ("ada") use ("-rnb");
    end Pretty_Printer;
 
    package Builder is

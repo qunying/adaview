@@ -62,3 +62,4 @@ package body Gtk.Main.Extra is
    end Get_Option_Group;
 
 end Gtk.Main.Extra;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

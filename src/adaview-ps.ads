@@ -140,3 +140,4 @@ package Adaview.PS is
    --  installed a wing from a DC-2.
 
 end Adaview.PS;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

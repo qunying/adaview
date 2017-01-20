@@ -52,3 +52,4 @@ package Glib.Option.Extra is
    -- Return  : Ture if the parsing was successful, False if an error occurred
 
 end Glib.Option.Extra;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

@@ -1300,3 +1300,4 @@ package body Adaview.PS is
       return Integer'Value (String (FD.Str (Offset .. End_Idx)));
    end Get_Number;
 end Adaview.PS;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

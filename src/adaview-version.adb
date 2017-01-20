@@ -54,3 +54,4 @@ LF &
 "along with this program; if not, see <http://www.gnu.org/licenses/>." & LF);
    end Get_License;
 end Adaview.Version;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

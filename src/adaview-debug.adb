@@ -60,3 +60,4 @@ package body Adaview.Debug is
       end if;
    end New_Line;
 end Adaview.Debug;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

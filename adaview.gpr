@@ -18,7 +18,7 @@ project Adaview is
    end Linker;
 
    package Pretty_Printer is
-      for Default_Switches ("ada") use ("-c4", "-W8", "--no-separate-is", "--split-line-before-op", "-l3", "-c0", "--decimal-grouping=3", "--par_threshold=5", "--call_threshold=5");
+      for Default_Switches ("ada") use ("-rnb");
    end Pretty_Printer;
 
    package Builder is

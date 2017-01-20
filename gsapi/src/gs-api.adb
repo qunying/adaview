@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- GhostScript API Ada binding                                               --
 --                                                                           --
--- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- * Public API for Ghostscript interpreter                                  --
 -- * Current problems:                                                       --
@@ -84,3 +84,4 @@ package body GS.API is
         Trim (Long_Integer'Image (Date), Left);
    end Get_Revision_Date_String;
 end GS.API;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

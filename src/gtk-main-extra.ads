@@ -61,3 +61,4 @@ package Gtk.Main.Extra is
    --                        Default is true.
 
 end Gtk.Main.Extra;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

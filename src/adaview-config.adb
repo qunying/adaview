@@ -439,3 +439,4 @@ package body Adaview.Config is
          null; -- ignore End_Error;
    end Process_Media_File;
 end Adaview.Config;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

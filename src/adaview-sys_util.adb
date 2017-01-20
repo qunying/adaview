@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2015 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2015-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -240,3 +240,4 @@ package body Adaview.Sys_Util is
       Num := Num - 1;
    end Decrement;
 end Adaview.Sys_Util;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

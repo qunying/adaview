@@ -67,3 +67,4 @@ package Adaview.Config is
    procedure Load_Medias;
    -- load medias definition from system wide/user defined or current directory
 end Adaview.Config;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

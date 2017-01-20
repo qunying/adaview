@@ -155,3 +155,4 @@ begin
       Delete_File (To_String (Doc_Ctx.Cur_Doc.Temp_Name));
    end if;
 end Adaview_Main;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

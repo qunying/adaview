@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- GhostScript API Ada binding                                               --
 --                                                                           --
--- Copyright (c) 2014-2015 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -20,11 +20,12 @@
 -------------------------------------------------------------------------------
 
 -- error definitions from ghostscript/ierrors.h
+
 package GS.Errors is
 
    type Code_T is new Integer;
 
-   No_Error             : constant Code_T := 0;
+   OK : constant Code_T := 0;
 
    -- definition of error codes, PostScript Level 1 errors
    E_Unknownerror       : constant Code_T := -1;
@@ -51,7 +52,8 @@ package GS.Errors is
    E_Undefinedfilename  : constant Code_T := -22;
    E_Undefinedresult    : constant Code_T := -23;
    E_Unmatchedmark      : constant Code_T := -24;
-   E_Vmerror            : constant Code_T := -25; -- must be the last Level 1 error
+   E_Vmerror            : constant Code_T := -25;
+   -- E_Vmerror must be the last Level 1 error
 
    ------ Additional Level 2 errors (also in DPS)
    E_Configurationerror : constant Code_T := -26;
@@ -60,14 +62,13 @@ package GS.Errors is
 
    ------ Additional DPS errors ------
    E_Invalidcontext : constant Code_T := -29;
-   E_Invalidid      : constant Code_T := -30; -- invalidid is for the NeXT DPS
-                                       -- extension.
+   E_Invalidid      : constant Code_T := -30;
+   -- invalidid is for the NeXT DPS extension.
 
    -- Pseudo-errors used internally
 
-   E_Fatal : constant Code_T := -100;
-   -- Internal code for a fatal error gs_interpret also returns this for a
-   -- .quit with a positive exit code.
+   E_Hit_Detected : constant Code_T := -99;
+   E_Fatal        : constant Code_T := -100;
 
    E_Quit : constant Code_T := -101;
    -- Internal code for the .quit operator. The real quit code is an integer on
@@ -79,10 +80,7 @@ package GS.Errors is
    -- of interp.c.
 
    E_RemapColor : constant Code_T := -103;
-   -- Internal code that indicates that a procedure has been stored in the
-   -- remap_proc of the graphics state, and should be called before retrying
-   -- the current token. This is used for color remapping involving a call back
-   -- into the interpreter -- inelegant, but effective.
+   -- Need the remap color error for high level pattern support
 
    E_ExecStackUnderflow : constant Code_T := -104;
    -- Internal code to indicate we have underflowed the top block of the
@@ -100,7 +98,14 @@ package GS.Errors is
    -- Internal code for a normal exit when usage info is displayed. This allows
    -- Window versions of Ghostscript to pause until the message can be read.
 
+   E_Handled : constant Code_T := -111;
+-- A special 'error', like remap color above. This is used by a subclassing
+-- device to indicate that it has fully processed a device method, and parent
+-- subclasses should not perform any further action. Currently this is
+-- limited to compositor creation.
+
    function Is_Interrupt (E_Code : Code_T) return Boolean;
    pragma Inline (Is_Interrupt);
    -- Define which error codes require re-executing the current object
 end GS.Errors;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

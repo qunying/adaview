@@ -47,3 +47,4 @@ package body Glib.Option.Extra is
    end Parse;
 
 end Glib.Option.Extra;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

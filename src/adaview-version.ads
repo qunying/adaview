@@ -45,3 +45,4 @@ package Adaview.Version is
    function Get_License return Glib.UTF8_String;
    -- return program license information
 end Adaview.Version;
+-- vim: set expandtab ts=3 sts=3 sw=3 smarttab :
