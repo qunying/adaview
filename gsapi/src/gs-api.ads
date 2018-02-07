@@ -144,7 +144,11 @@ package GS.API is
    -- after GS.API.New_Instance() and before GS.API.init_with_args().
    -- See gdevdisp.h for more details.
 
-   -- function Set_Default_Device_List();
+   function Set_Default_Device_List
+      (Instance : Instance_T;
+      List      : chars_ptr;
+      List_Len  : int) return Code_T;
+   pragma Import (C, Set_Default_Device_List, "gsapi_set_default_device_list");
    -- Set the string containing the list of default device names
    -- for example "display x11alpha x11 bbox". Allows the calling
    -- application to influence which device(s) gs will try in order
@@ -153,9 +157,14 @@ package GS.API is
    -- *Must* be called after GS.API.New_Instance() and before
    -- GS.API.Init_With_Args().
 
-   -- function Get_Default_Devlice_List();
+   function Get_Default_Devlice_List
+      (Instance : Instance_T;
+      List      : chars_ptr_array;
+      List_Len  : out int) return Code_T;
+   pragma Import (C, Get_Default_Devlice_List,
+   "gsapi_get_default_device_list");
    -- Returns a pointer to the current default device string
-   -- *Must* be called after gsapi_new_instance().
+   -- *Must* be called after GS.API.New_Instance()
 
    function Set_Arg_Encoding
      (Instance : Instance_T;

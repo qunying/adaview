@@ -5,6 +5,10 @@ with "gnatcoll";
 
 project Adaview is
 
+   type Build_Kind1 is
+      ("default");
+   type Build_Kind is
+      ("static", "relocatable", "static-pic");
    for Source_Dirs use ("src/**");
    for Object_Dir use "obj";
    for Main use ("adaview_main.adb");
@@ -12,10 +16,8 @@ project Adaview is
       ("static", "relocatable");
    Library_Type : Adaview_Kind_Type := external ("LIBRARY_TYPE", "relocatable");
    for Exec_Dir use "./";
-
-   package Linker is
-      for Default_Switches ("ada") use ("-lgs");
-   end Linker;
+   XMLADA_BUILD : Build_Kind := external ("XMLADA_BUILD", "relocatable");
+   FLORIST_BUILD : Build_Kind1 := external ("FLORIST_BUILD", "default");
 
    package Pretty_Printer is
       for Default_Switches ("ada") use ("-rnb");
@@ -25,23 +27,6 @@ project Adaview is
       for Default_Switches ("ada") use ("-s", "-m", "-g");
       for Executable ("adaview_main.adb") use "adaview";
    end Builder;
-
-   package Binder is
-      for Default_Switches ("ada") use ("-shared");
-   end Binder;
-
-   package Compiler is
-
-      case Library_Type is
-
-         when "static" =>
-            for Default_Switches ("ada") use ("-g", "-gnatf", "-gnato", "-gnatE");
-
-         when "relocatable" =>
-            for Default_Switches ("ada") use ("-gnatwafu", "-g", "-gnatf", "-gnatyabiknprstux", "-gnat12");
-      end case;
-   end Compiler;
-
    package Ide is
       for Vcs_Kind use "Git";
    end Ide;

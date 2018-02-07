@@ -21,5 +21,9 @@ project Gsapi is
       for Default_Switches ("ada") use ("-g", "-gnato", "-gnatE", "-gnatyaAbhknOprstux");
    end Compiler;
 
+   package Linker is
+       for Linker_Options use ("-lgs");
+   end Linker;
+
 end Gsapi;
 

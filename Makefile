@@ -10,11 +10,11 @@ DESTDIR :=
 
 all:
 	@./generate_path.sh "${prefix}"
-	@gprbuild -d -Padaview.gpr -XLIBRARY_TYPE=relocatable
+	@gprbuild -d -Padaview.gpr -XLIBRARY_TYPE=relocatable -XXMLADA_BUILD=relocatable
 
 clean:
 	@echo "Cleaning build trees"
-	@gprclean -r -q -P adaview.gpr -XLIBRARY_TYPE=relocatable
+	@gprclean -r -q -P adaview.gpr -XLIBRARY_TYPE=relocatable -XXMLADA_BUILD=relocatable
 
 po:
 	@$(MAKE) -C po
