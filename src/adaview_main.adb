@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,11 +19,11 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;           use Ada.Text_IO;
-with Ada.Integer_Text_IO;   use Ada.Integer_Text_IO;
-with Ada.Command_Line;      use Ada.Command_Line;
-with Ada.Directories;       use Ada.Directories;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;         use Ada.Text_IO;
+with Ada.Integer_Text_IO; use Ada.Integer_Text_IO;
+with Ada.Command_Line;    use Ada.Command_Line;
+with Ada.Directories;     use Ada.Directories;
+with GNATCOLL.Strings;    use GNATCOLL.Strings;
 
 with Interfaces.C; use Interfaces.C;
 with System;       use System;
@@ -71,13 +71,12 @@ begin
 
    if Argument_Count >= 1 then
       if Argument (1) (1) = '/' then
-         Doc_Ctx.Cur_Doc.Name := To_Unbounded_String (Argument (1));
+         Doc_Ctx.Cur_Doc.Name := To_XString (Argument (1));
       else
          declare
             cwd : constant String := POSIX.To_String (Get_Working_Directory);
          begin
-            Doc_Ctx.Cur_Doc.Name :=
-              To_Unbounded_String (cwd & "/" & Argument (1));
+            Doc_Ctx.Cur_Doc.Name := To_XString (cwd & "/" & Argument (1));
          end;
       end if;
 
@@ -94,13 +93,15 @@ begin
       if Argument_Count = 2 then
          Doc_Ctx.Cur_Doc.Cur_Page := Integer'Value (Argument (2));
       end if;
+
       -- try to see if we have the file in the history
       for i in 1 .. Doc_Ctx.Total_Doc loop
          if Doc_Ctx.Cur_Doc.Checksum = Doc_Ctx.History (i).Checksum then
             -- we found an entry
             Dbg.Put_Line (Dbg.TRACE, "we got an entry in the history.");
             Matched_Idx := i;
-            if Doc_Ctx.Cur_Doc.Name /= Doc_Ctx.History (i).Name then
+            if Compare (Doc_Ctx.Cur_Doc.Name, Doc_Ctx.History (i).Name)
+               /= 0 then
                Doc_Ctx.History (i).Name := Doc_Ctx.Cur_Doc.Name;
                Doc_Ctx.Cur_Doc.Kind     := Doc_Ctx.History (i).Kind;
                if Doc_Ctx.Cur_Doc.Cur_Page = 0 then

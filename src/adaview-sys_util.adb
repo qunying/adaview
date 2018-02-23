@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2015-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2015-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -37,18 +37,20 @@ package body Adaview.Sys_Util is
    Cmd_Bzip2 : aliased String := "bzip2";
    Cmd_Xz    : aliased String := "xz";
    Cmd_ZStd  : aliased String := "zstd";
+   Cmd_Lzip  : aliased String := "lzip";
 
    type Byte_T is mod 2**8;
+
    type Byte_String_T is array (Positive range <>) of Byte_T;
 
    procedure Decompress_File
-     (File_Name     : in     Unbounded_String;
-      Temp_Name     : in out Unbounded_String;
+     (File_Name     : in     XString;
+      Temp_Name     : in out XString;
       Compress_Type : in     Compress_T);
 
    ---------------------------------------------------------------------------
    function system (Arg : String) return Integer is
-      function Sys (Arg : char_array) return Integer;
+      function Sys (Arg : Interfaces.C.char_array) return Integer;
       pragma Import (C, Sys, "system");
    begin
       Dbg.Put_Line (Dbg.TRACE, "system(""" & Arg & """)");
@@ -57,10 +59,11 @@ package body Adaview.Sys_Util is
 
    ---------------------------------------------------------------------------
    procedure mkstemp (filename : in out String) is
-      function c_mkstemp (filename : char_array) return File_Descriptor;
+      function c_mkstemp
+        (filename : Interfaces.C.char_array) return File_Descriptor;
       pragma Import (C, c_mkstemp, "mkstemp");
       Fd      : File_Descriptor;
-      In_File : constant char_array := To_C (filename);
+      In_File : constant Interfaces.C.char_array := To_C (filename);
    begin
       Fd := c_mkstemp (In_File);
       if Fd = -1 then
@@ -72,14 +75,13 @@ package body Adaview.Sys_Util is
 
    ---------------------------------------------------------------------------
    procedure Decompress_File
-     (File_Name     : in     Unbounded_String;
-      Temp_Name     : in out Unbounded_String;
+     (File_Name     : in     XString;
+      Temp_Name     : in out XString;
       Compress_Type : in     Compress_T) is
       Base          : constant String := Base_Name (To_String (File_Name));
       Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
       CMD_Ptr       : GNAT.OS_Lib.String_Access;
       Ret           : Integer;
-
    begin
       mkstemp (Template_Name);
 
@@ -88,17 +90,26 @@ package body Adaview.Sys_Util is
       case Compress_Type is
          when COMPRESS | GZIP =>
             CMD_Ptr := Cmd_Gzip'Access;
+
          when BZIP2 =>
             CMD_Ptr := Cmd_Bzip2'Access;
+
          when XZ =>
             CMD_Ptr := Cmd_Xz'Access;
+
          when ZSTD =>
             CMD_Ptr := Cmd_ZStd'Access;
+
+         when LZIP =>
+            CMD_Ptr := Cmd_Lzip'Access;
+
          when others =>
             null;
       end case;
+      --!pp off
       Ret := system (CMD_Ptr.all & " -dc " & To_String (File_Name) & " > "
                      & Template_Name);
+      --!pp on
       Dbg.Put_Line (Dbg.TRACE, "decompress result: " & Integer'Image (Ret));
       -- decompress file have zero length, consider failed.
       if Ret /= 0 or else Size (Template_Name) = 0 then
@@ -111,26 +122,28 @@ package body Adaview.Sys_Util is
 
    ---------------------------------------------------------------------------
    procedure Create_PDF_DSC_File
-     (PDF_File : in     Unbounded_String;
-      DSC_File : in out Unbounded_String;
-      Password : in     Unbounded_String) is
+     (PDF_File : in     XString;
+      DSC_File : in out XString;
+      Password : in     XString) is
       Base          : constant String := Base_Name (To_String (PDF_File));
       Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
       Ret           : Integer;
    begin
       mkstemp (Template_Name);
+      --!pp off
       if Length (Password) > 0 then
-         Ret := system ("gs -P- -dSAFER -dDELAYSAFER -dNODISPLAY "
+         Ret := system (  "gs -P- -dSAFER -dDELAYSAFER -dNODISPLAY "
                         & "-dQUIET -sPDFname=" & To_String (PDF_File)
                         & " -sDSCname=" & Template_Name
                         & " pdf2dsc.ps -c quit -dsPDFPassword="
                         & To_String (Password));
       else
-         Ret := system ("gs -P- -dSAFER -dDELAYSAFER -dNODISPLAY "
+         Ret := system (  "gs -P- -dSAFER -dDELAYSAFER -dNODISPLAY "
                         & "-dQUIET -sPDFname=" & To_String (PDF_File)
                         & " -sDSCname=" & Template_Name
                         & " pdf2dsc.ps -c quit");
       end if;
+      --!pp on
 
       Dbg.Put_Line (Dbg.TRACE, "PDF to DSC result: " & Integer'Image (Ret));
       -- DSC file have zero length, consider failed.
@@ -143,8 +156,8 @@ package body Adaview.Sys_Util is
 
    ---------------------------------------------------------------------------
    procedure Get_File_MD5
-     (File_Name : in     Unbounded_String;
-      Temp_Name : in out Unbounded_String;
+     (File_Name : in     XString;
+      Temp_Name : in out XString;
       Checksum  :    out String) is
       use Ada.Streams;
 
@@ -154,6 +167,7 @@ package body Adaview.Sys_Util is
       Data : Byte_String_T (1 .. Data_Block_Size);
       -- so that we could use it for compression magic header detection
 
+      --!pp off
       Compress_Magic : constant Byte_String_T := (16#1F#, 16#9d#);
       Gzip_Magic     : constant Byte_String_T := (16#1F#, 16#8B#);
       Bzip2_Magic    : constant Byte_String_T := (Character'Pos ('B'),
@@ -165,9 +179,14 @@ package body Adaview.Sys_Util is
                                                   Character'Pos ('X'),
                                                   Character'Pos ('Z'),
                                                   16#00#);
+      Lzip_Magic     : constant Byte_String_T := (Character'Pos('L'),
+                                                  Character'Pos('Z'),
+                                                  Character'Pos('I'),
+                                                  Character'Pos('P'));
       ZStd_Magic     : constant Byte_String_T := (16#28#, 16#b5#,
                                                   16#2f#, 16#fd#);
-      Compress_Type  : Compress_T := NO_COMPRESS;
+      Compress_Type  : Compress_T             := NO_COMPRESS;
+      --!pp on
 
       subtype Sea_T is Stream_Element_Array (1 .. Data_Block_Size);
       package SEA_Addr is new Standard.System.Address_To_Access_Conversions
@@ -193,11 +212,11 @@ package body Adaview.Sys_Util is
             Compress_Type := XZ;
          elsif Data (1 .. ZStd_Magic'Last) = ZStd_Magic then
             Compress_Type := ZSTD;
+         elsif Data (1 .. Lzip_Magic'Last) = Lzip_Magic then
+            Compress_Type := LZIP;
          end if;
       end if;
-      Dbg.Put_Line
-        (Dbg.TRACE,
-         "compression method " & Compress_T'Image (Compress_Type));
+      Dbg.Put_Line (Dbg.TRACE, "compression method " & Compress_Type'Image);
       if Compress_Type /= NO_COMPRESS then
          Stream_IO.Close (In_File);
          Decompress_File (File_Name, Temp_Name, Compress_Type);
@@ -239,5 +258,6 @@ package body Adaview.Sys_Util is
    begin
       Num := Num - 1;
    end Decrement;
+
 end Adaview.Sys_Util;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

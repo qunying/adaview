@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -23,11 +23,12 @@ with Ada.Strings.Fixed;
 with Glib;
 
 package Adaview.Version is
+
    use Ada.Strings.Fixed;
 
    Major : constant                  := 0;
    Minor : constant                  := 0;
-   Date  : constant                  := 20170113;
+   Date  : constant                  := 20180223;
    Text  : constant Glib.UTF8_String :=
      Trim (Integer'Image (Major), Ada.Strings.Left) &
      "." &

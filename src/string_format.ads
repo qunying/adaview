@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2015-2017 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2015-2018 Zhu Qun-Ying.                                          --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,23 +19,22 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
+with GNATCOLL.Strings;
 
 package String_Format is
-   use Ada.Strings.Unbounded;
 
-   type UString_Array is array (Positive range <>) of Unbounded_String;
-   Null_UString_Array : UString_Array (2 .. 1);
+   use GNATCOLL.Strings;
 
    No_Element    : exception;
    Invalid_Index : exception;
 
-   function "+" (S : String) return Unbounded_String renames
-     To_Unbounded_String;
+   Null_XString_Array : XString_Array (2 .. 1);
+
+   function "+" (S : String) return XString renames To_XString;
 
    function Format_String
      (Format   : String;
-      Elements : UString_Array) return String;
+      Elements : XString_Array) return String;
    -- Format a string using position holder %1 %2 and the correspoding
    -- Element in the Elements. To output % character, if no digit follow the
    -- %, then % will be output, othewise %% is needed to escape %.
@@ -46,7 +45,7 @@ package String_Format is
 
    function Fmt
      (Format   : String;
-      Elements : UString_Array) return String renames
+      Elements : XString_Array) return String renames
      Format_String;
 
 end String_Format;

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- Adaview is free software; you can redistribute it and/or modify      --
 -- it under the terms of the GNU General Public License as published by      --
@@ -25,20 +25,21 @@ package body Adaview.Version is
    LF : constant Character := Ada.Characters.Latin_1.LF;
 
    ---------------------------------------------------------------------------
-   function Get_Description return  Glib.UTF8_String is
+   function Get_Description return Glib.UTF8_String is
    begin
       return -"A PostScript/PDF viewer.";
    end Get_Description;
 
    ---------------------------------------------------------------------------
-   function Get_Copyright return  Glib.UTF8_String is
+   function Get_Copyright return Glib.UTF8_String is
    begin
-      return -"Copyright (C) 2014-2017 Zhu Qun-Ying";
+      return -"Copyright (C) 2014-2018 Zhu Qun-Ying";
    end Get_Copyright;
 
    ---------------------------------------------------------------------------
-   function Get_License return  Glib.UTF8_String is
+   function Get_License return Glib.UTF8_String is
    begin
+   --!pp off
       return -(
 "Adaview is free software; you can redistribute it and/or modify" & LF &
 "it under the terms of the GNU General Public License as published by" & LF &
@@ -53,5 +54,6 @@ LF &
 "You should have received a copy of the GNU General Public License" & LF &
 "along with this program; if not, see <http://www.gnu.org/licenses/>." & LF);
    end Get_License;
+   --!pp on
 end Adaview.Version;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

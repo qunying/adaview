@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -21,7 +21,7 @@
 
 -- Define adaview's configuration and command line arguments
 
-with Ada.Strings.Unbounded;
+with GNATCOLL.Strings; use GNATCOLL.Strings;
 
 package Adaview.Config is
 
@@ -36,7 +36,7 @@ package Adaview.Config is
       Config_File     : Path_T;
       Data_File       : Path_T;
       Cur_Doc         : Doc_T;
-      Password        : Unbounded_String;
+      Password        : XString;
       History         : Doc_History_T (1 .. Max_Recent_Document_Number);
       Total_Doc       : Natural := 0;
       History_Changed : Boolean := False;

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -18,15 +18,14 @@
 -- You should have received a copy of the GNU General Public License         --
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
-with Ada.Text_IO;                   use Ada.Text_IO;
-with Interfaces.C.Strings;          use Interfaces.C.Strings;
-with Ada.Directories;               use Ada.Directories;
-with Ada.Environment_Variables;     use Ada.Environment_Variables;
-with Ada.Strings;                   use Ada.Strings;
-with Ada.Strings.Unbounded.Text_IO; use Ada.Strings.Unbounded.Text_IO;
-with Ada.Strings.Fixed;             use Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;         use Ada.Strings.Unbounded;
-with GNAT.String_Split;             use GNAT.String_Split;
+with Ada.Text_IO;               use Ada.Text_IO;
+with Interfaces.C.Strings;      use Interfaces.C.Strings;
+with Ada.Directories;           use Ada.Directories;
+with Ada.Environment_Variables; use Ada.Environment_Variables;
+with Ada.Strings;               use Ada.Strings;
+with Ada.Strings.Fixed;         use Ada.Strings.Fixed;
+with GNATCOLL.Strings;          use GNATCOLL.Strings;
+with GNAT.String_Split;         use GNAT.String_Split;
 
 with System;
 with Ada.Unchecked_Conversion;
@@ -151,8 +150,10 @@ package body Adaview.Config is
       case Debug_Level is
          when 0 =>
             Dbg.Set_Flag (Dbg.NONE);
+
          when 8 =>
             Dbg.Set_Flag (Dbg.TRACE);
+
          when others =>
             Dbg.Set_Flag (Dbg.INFO);
       end case;
@@ -161,6 +162,7 @@ package body Adaview.Config is
          Ctx.Password := +Value (Password);
          Dbg.Put_Line (Dbg.TRACE, "got password " & To_String (Ctx.Password));
       end if;
+
       -- free the opts and context
       for i in Opts'Range loop
          Free (Opts (i).Long_Name);
@@ -187,8 +189,8 @@ package body Adaview.Config is
       Create_Path (To_String (Conf_Path));
 
       -- ok, try forming data and config file path
-      ctx.Data_File   := Data_Path & "/history";
-      ctx.Config_File := Conf_Path & "/config.txt";
+      ctx.Data_File   := +(To_String (Data_Path) & "/history");
+      ctx.Config_File := +(To_String (Conf_Path) & "/config.txt");
       Load_History (ctx);
       Dbg.Put_Line
         (Dbg.TRACE,
@@ -208,14 +210,14 @@ package body Adaview.Config is
       His_File  : File_Type;
       Tokens    : Slice_Set;
       Separator : constant String := ":";
-      Data_Line : Unbounded_String;
+      Data_Line : XString;
    begin
       Put_Line ("open history file:" & To_String (Ctx.Data_File));
       Open (His_File, In_File, To_String (Ctx.Data_File));
 
       Read_Line :
       loop
-         Data_Line := Trim (Get_Line (His_File), Both);
+         Data_Line := Trim (+(Get_Line (His_File)), Both);
 
          -- skip empty line
          if Length (Data_Line) = 0 then
@@ -271,6 +273,7 @@ package body Adaview.Config is
    exception
       when Ada.Text_IO.Name_Error =>
          null; -- ignore Name error
+
       when Ada.Text_IO.End_Error =>
          if Is_Open (His_File) then
             Close (His_File);
@@ -303,6 +306,7 @@ package body Adaview.Config is
       if Ctx.Cur_Doc.Checksum (1) /= ' ' then
          Save_One_Entry (Out_File, Ctx.Cur_Doc);
       end if;
+
       for i in 1 .. Ctx.Total_Doc loop
          if Ctx.Cur_Doc.Checksum /= Ctx.History (i).Checksum then
             Save_One_Entry (Out_File, Ctx.History (i));
@@ -322,7 +326,6 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    procedure Print_Short_Version is
-
    begin
       Put_Line
         (Prg_Name & " " & Adaview.Version.Text & " - " & Get_Description);
@@ -366,8 +369,11 @@ package body Adaview.Config is
       Sys_Medias_File : constant String :=
         Adaview.Path.Share & "/" & Prg_Name & "/" & Medias_File;
       User_Medias_File : constant String :=
-        Value ("XDG_CONFIG_HOME", Home & "/.config") & "/" & Prg_Name & "/"
-        & Medias_File;
+        Value ("XDG_CONFIG_HOME", Home & "/.config") &
+        "/" &
+        Prg_Name &
+        "/" &
+        Medias_File;
 
       M_File     : File_Type;
       Fail_Count : Integer := 0;
@@ -378,16 +384,17 @@ package body Adaview.Config is
          Open (M_File, In_File, Name);
          Process_Media_File (M_File);
          Close (M_File);
-      end;
+      end Open_Media_File;
    begin
       begin
-	 Open_Media_File (Sys_Medias_File);
+         Open_Media_File (Sys_Medias_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
       end;
+
       begin
-	 Open_Media_File (User_Medias_File);
+         Open_Media_File (User_Medias_File);
       exception
          when Ada.Text_IO.Name_Error =>
             Increment (Fail_Count);
@@ -395,10 +402,10 @@ package body Adaview.Config is
       -- only try to open a local medias file when all the above failed.
       if Fail_Count = 2 then
          begin
-	    Open_Media_File (Medias_File);
+            Open_Media_File (Medias_File);
          exception
             when Ada.Text_IO.Name_Error =>
-               Put_Line (+"No medias file found.");
+               Put_Line (-"No medias file found.");
          end;
       end if;
    end Load_Medias;
@@ -407,16 +414,14 @@ package body Adaview.Config is
    procedure Process_Media_File (M_File : File_Type) is
       Tokens    : Slice_Set;
       Separator : constant String := " ";
-      Data_Line : Unbounded_String;
+      Data_Line : XString;
       Media     : Media_T;
    begin
       Read_Line :
       loop
-         Data_Line := Trim (Get_Line (M_File), Both);
-         if Length (Data_Line) = 0
-           or else Element (Data_Line, 1) = '#'
-         -- # aa the first denotes a comment
-         then
+         Data_Line := +Trim (Get_Line (M_File), Both);
+         if Length (Data_Line) = 0 or else Get (Data_Line, 1) = '#' then
+            -- # aa the first denotes a comment
             goto continue;
          end if;
          GNAT.String_Split.Create
@@ -438,5 +443,6 @@ package body Adaview.Config is
       when Ada.Text_IO.End_Error =>
          null; -- ignore End_Error;
    end Process_Media_File;
+
 end Adaview.Config;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -19,34 +19,38 @@
 -- along with this program; if not, see <http://www.gnu.org/licenses/>.      --
 -------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Interfaces;            use Interfaces;
+with GNATCOLL.Strings; use GNATCOLL.Strings;
+with Interfaces;       use Interfaces;
 with Ada.Containers.Vectors;
 
 package Adaview is
 
    type Backend_T is (GHOSTSCRIPT, MUPDF);
+
    type Doc_Kind_T is (UNKNOWN_FILE, PS_FILE, EPSF_FILE, PDF_FILE);
+
    type Bounding_Box_T is array (1 .. 4) of Integer;
 
    type Bounding_Box_Set_T is (ATEND, NONE, SET);
+
    type Orientation_T is (ATEND, NONE, PORTRAIT, LANDSCAPE, SEASCAPE);
+
    type Page_Order_T is (ATEND, NONE, ASCEND, DESCEND, SPECIAL);
 
    MD5_Length : constant := 32;
 
-   subtype Path_T is Unbounded_String;
+   subtype Path_T is XString;
 
    type Media_T is record
-      Name          : Unbounded_String := Null_Unbounded_String;
+      Name          : XString := Null_XString;
       Width, Height : Integer;
-      Used          : Integer          := 0;
+      Used          : Integer := 0;
    end record;
 
    type Page_T is record
-      Label : Unbounded_String := Null_Unbounded_String;
-      Bounding_Box : Bounding_Box_T;
-      Orientation  : Orientation_T;
+      Label               : XString := Null_XString;
+      Bounding_Box        : Bounding_Box_T;
+      Orientation         : Orientation_T;
       Start, The_End, Len : Unsigned_64;
    end record;
 
@@ -59,22 +63,22 @@ package Adaview is
       Index_Type   => Positive);
 
    type Doc_T is record
-      Name                     : Path_T           := Null_Unbounded_String;
-      Temp_Name                : Path_T           := Null_Unbounded_String;
-      DCS_Name                 : Path_T           := Null_Unbounded_String;
-      Backend                  : Backend_T        := GHOSTSCRIPT;
-      Kind                     : Doc_Kind_T       := UNKNOWN_FILE;
-      Cur_Page                 : Natural          := 0;
-      Total_Page               : Natural          := 0;
-      Header_Pos               : Unsigned_64      := 0;
-      Title                    : Unbounded_String := Null_Unbounded_String;
-      Creation_Date            : Unbounded_String := Null_Unbounded_String;
-      Date                     : Unbounded_String := Null_Unbounded_String;
+      Name                     : Path_T        := Null_XString;
+      Temp_Name                : Path_T        := Null_XString;
+      DCS_Name                 : Path_T        := Null_XString;
+      Backend                  : Backend_T     := GHOSTSCRIPT;
+      Kind                     : Doc_Kind_T    := UNKNOWN_FILE;
+      Cur_Page                 : Natural       := 0;
+      Total_Page               : Natural       := 0;
+      Header_Pos               : Unsigned_64   := 0;
+      Title                    : XString       := Null_XString;
+      Creation_Date            : XString       := Null_XString;
+      Date                     : XString       := Null_XString;
       Bounding_Box             : Bounding_Box_T;
       Page_Bounding_Box        : Bounding_Box_T;
-      Orientation              : Orientation_T    := NONE;
-      Page_Order               : Page_Order_T     := NONE;
-      Default_Page_Orientation : Orientation_T    := NONE;
+      Orientation              : Orientation_T := NONE;
+      Page_Order               : Page_Order_T  := NONE;
+      Default_Page_Orientation : Orientation_T := NONE;
       Checksum                 : String (1 .. MD5_Length);
       Media                    : Media_Vector.Vector;
       Default_Page_Media       : Media_T;

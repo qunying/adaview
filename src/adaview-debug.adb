@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -20,6 +20,7 @@
 -------------------------------------------------------------------------------
 
 package body Adaview.Debug is
+
    Cur_Flag : Flag := NONE;
 
    ---------------------------------------------------------------------------
@@ -59,5 +60,6 @@ package body Adaview.Debug is
          Ada.Text_IO.New_Line (Count);
       end if;
    end New_Line;
+
 end Adaview.Debug;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

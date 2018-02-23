@@ -22,6 +22,7 @@ with System;
 with Interfaces.C;
 
 package body Glib.Option.Extra is
+
    gnat_argc : Interfaces.C.int;
    pragma Import (C, gnat_argc);
 

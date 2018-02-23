@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -22,6 +22,7 @@
 with Ada.Text_IO;
 
 package Adaview.Debug is
+
    type Flag is (NONE, ERROR, WARNING, INFO, TRACE);
 
    procedure Set_Flag (In_Flag : Flag);

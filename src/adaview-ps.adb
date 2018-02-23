@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -100,15 +100,11 @@ package body Adaview.PS is
       File : in out File_Data_T);
    pragma Inline (Test_For_PDF_Password);
 
-   function Get_Text_Line
-     (FD     : File_Data_T;
-      Offset : Integer) return Unbounded_String;
+   function Get_Text_Line (FD : File_Data_T; Offset : Integer) return XString;
    -- skip over white space and return the rest of the line.
    -- If the text begins with '(' return the text string using Get_Text
 
-   function Get_Text
-     (FD     : File_Data_T;
-      Offset : Integer) return Unbounded_String;
+   function Get_Text (FD : File_Data_T; Offset : Integer) return XString;
    -- return the next text string on the line.
    -- return Null_Unbonded_String if nothing is present.
 
@@ -156,7 +152,7 @@ package body Adaview.PS is
       I, J                 : Integer            := 0;
 
       Name_Len : Integer := 0;
-      Label    : Unbounded_String;
+      Label    : XString;
 
       Ignore            : Boolean := False;
       Begin_Setup_Found : Boolean := False;
@@ -213,6 +209,7 @@ package body Adaview.PS is
          Dbg.Put_Line (Dbg.TRACE, "found PS-Adobe- comment");
          Ctx.Cur_Doc.Kind := PS_FILE;
          I                := File.Line_Begin;
+
          while I <= File.Line_End loop
             exit when File.Str (I) = ACL.Space or File.Str (I) = ACL.HT;
             Increment (I);
@@ -239,6 +236,7 @@ package body Adaview.PS is
       Test_For_PDF_Password (Ctx, File);
 
       Preread := False;
+
       while Preread or else Read_Line (File) loop
          if not Preread then
             Section_Len := Section_Len + Unsigned_64 (File.Line_Len);
@@ -253,11 +251,11 @@ package body Adaview.PS is
 
          if File.Str (File.Line_Begin + 1) /= '%' then
             null; -- do nothing
-         elsif Ctx.Cur_Doc.Title = Null_Unbounded_String
+         elsif Ctx.Cur_Doc.Title = Null_XString
            and then Is_Comment (File, Title, 2)
          then
             Ctx.Cur_Doc.Title := Get_Text_Line (File, Title'Length + 2);
-         elsif Ctx.Cur_Doc.Date = Null_Unbounded_String
+         elsif Ctx.Cur_Doc.Date = Null_XString
            and then Is_Comment (File, Creation_Date, 2)
          then
             Ctx.Cur_Doc.Date := Get_Text_Line (File, Creation_Date'Length + 2);
@@ -325,7 +323,7 @@ package body Adaview.PS is
          then
             Media.Used := 0;
             Media.Name := Get_Text (File, Document_Media'Length + 2);
-            if Media.Name /= Null_Unbounded_String then
+            if Media.Name /= Null_XString then
                Get_Number
                  (String
                     (File.Str
@@ -343,13 +341,14 @@ package body Adaview.PS is
                end if;
             end if;
             Preread := True;
+
             while Read_Line (File)
               and then DSC_Comment (File)
               and then Is_Comment (File, "+", 2)
             loop
                Increment (Section_Len, File.Line_Len);
                Media.Name := Get_Text (File, 3);
-               if Media.Name /= Null_Unbounded_String then
+               if Media.Name /= Null_XString then
                   Get_Number
                     (String
                        (File.Str
@@ -372,7 +371,7 @@ package body Adaview.PS is
          then
             Media.Used := 0;
             Media.Name := Get_Text (File, Doc_Paper_Size'Length + 2);
-            if Media.Name /= Null_Unbounded_String then
+            if Media.Name /= Null_XString then
                -- Note: Papaer size coment uses down cased paper size
                -- name.  Case insensitive compares are only used for
                -- PaperSize comments.
@@ -389,10 +388,12 @@ package body Adaview.PS is
                end loop;
                Name_Len := Length (Media.Name) + 1;
             end if;
+
             loop
                Media.Name :=
                  Get_Text (File, Doc_Paper_Size'Length + 2 + Name_Len);
-               exit when Media.Name = Null_Unbounded_String;
+               exit when Media.Name = Null_XString;
+
                for K in 1 .. Positive (Length (Medias)) loop
                   if Eq
                       (To_String (Media.Name),
@@ -407,18 +408,21 @@ package body Adaview.PS is
                Name_Len := Name_Len + Length (Media.Name) + 1;
             end loop;
             Preread := True;
+
             while Read_Line (File)
               and then DSC_Comment (File)
               and then Is_Comment (File, "+", 2)
             loop
                Increment (Section_Len, File.Line_Len);
                Name_Len := 3;
+
                loop
                   Media.Name := Get_Text (File, Name_Len);
-                  exit when Media.Name = Null_Unbounded_String;
+                  exit when Media.Name = Null_XString;
                   -- Note: Papaer size coment uses down cased paper size
                   -- name.  Case insensitive compares are only used for
                   -- PaperSize comments.
+
                   Internal :
                   for K in 1 .. Positive (Length (Medias)) loop
                      if Eq
@@ -489,6 +493,7 @@ package body Adaview.PS is
               and then Is_Comment (File, Page_Media, 2)
             then
                Media.Name := Get_Text (File, Page_Media'Length + 2);
+
                for K in 1 .. Positive (Length (Medias)) loop
                   if Media.Name = Medias (K).Name then
                      Ctx.Cur_Doc.Default_Page_Media := Medias (K);
@@ -519,10 +524,10 @@ package body Adaview.PS is
       if not
         (DSC_Comment (File)
          and then
-         (Is_Comment (File, Begin_Setup, 2)
-          or Is_Comment (File, Page, 2)
-          or Is_Comment (File, Trailer, 2)
-          or Is_Comment (File, EOF_Str, 2)))
+         (Is_Comment (File, Begin_Setup, 2) or
+          Is_Comment (File, Page, 2) or
+          Is_Comment (File, Trailer, 2) or
+          Is_Comment (File, EOF_Str, 2)))
       then
          Begin_Setup_Found := True;
          Preread           := True;
@@ -531,11 +536,11 @@ package body Adaview.PS is
            and then not
            (DSC_Comment (File)
             and then
-            (Is_Comment (File, End_Prolog, 2)
-             or Is_Comment (File, Begin_Setup, 2)
-             or Is_Comment (File, Page, 2)
-             or Is_Comment (File, Trailer, 2)
-             or Is_Comment (File, EOF_Str, 2)))
+            (Is_Comment (File, End_Prolog, 2) or
+             Is_Comment (File, Begin_Setup, 2) or
+             Is_Comment (File, Page, 2) or
+             Is_Comment (File, Trailer, 2) or
+             Is_Comment (File, EOF_Str, 2)))
          loop
             Preread := False;
          end loop;
@@ -556,9 +561,9 @@ package body Adaview.PS is
       if not
         (DSC_Comment (File)
          and then
-         (Is_Comment (File, Page, 2)
-          or Is_Comment (File, Trailer, 2)
-          or (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
+         (Is_Comment (File, Page, 2) or
+          Is_Comment (File, Trailer, 2) or
+          (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
       then
          Preread := True;
 
@@ -566,10 +571,10 @@ package body Adaview.PS is
            and then not
            (DSC_Comment (File)
             and then
-            (Is_Comment (File, End_Setup, 2)
-             or Is_Comment (File, Page, 2)
-             or Is_Comment (File, Trailer, 2)
-             or (Respect_EOF and then Is_Comment (File, EOF_Str, 2))))
+            (Is_Comment (File, End_Setup, 2) or
+             Is_Comment (File, Page, 2) or
+             Is_Comment (File, Trailer, 2) or
+             (Respect_EOF and then Is_Comment (File, EOF_Str, 2))))
          loop
             Preread := False;
 
@@ -593,6 +598,7 @@ package body Adaview.PS is
                -- Note: Paper size comment uses down cased paper size
                -- name.  Case insensitive compares are only used for
                -- PaperSize comments.
+
                for K in 1 .. Positive (Length (Medias)) loop
                   if Eq
                       (To_String (Media.Name),
@@ -635,10 +641,10 @@ package body Adaview.PS is
          while not
            (DSC_Comment (File)
             and then
-            (Is_Comment (File, End_Setup, 2)
-             or Is_Comment (File, Page, 2)
-             or Is_Comment (File, Trailer, 2)
-             or (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
+            (Is_Comment (File, End_Setup, 2) or
+             Is_Comment (File, Page, 2) or
+             Is_Comment (File, Trailer, 2) or
+             (Respect_EOF and Is_Comment (File, EOF_Str, 2))))
          loop
             exit when not Read_Line (File);
          end loop;
@@ -692,7 +698,7 @@ package body Adaview.PS is
       FD.Page_Size := Get_Page_Size;
       Dbg.Put_Line
         (Dbg.TRACE,
-         "File [" & File_Name & "] size" & File_Size'Image (FD.Size));
+         "File [" & File_Name & "] size" & FD.Size'Image);
    end IO_Init;
 
    ---------------------------------------------------------------------------
@@ -715,6 +721,7 @@ package body Adaview.PS is
       if Is_Begin (FD, "Document") then
          -- skip the EPS without handling its content
          Nesting_Level := 1;
+
          loop
             if not Get_Chars (FD, -1) then
                return False;
@@ -762,6 +769,7 @@ package body Adaview.PS is
          Data_Num := File_Size'Value (Slice (Tokens, 1));
          if Slice (Tokens, 3) = "Lines" then
             Dbg.Put_Line (Dbg.INFO, "skip lines " & Slice (Tokens, 1));
+
             while Data_Num > 0 loop
                if not Get_Chars (FD, -1) then
                   return False;
@@ -808,6 +816,7 @@ package body Adaview.PS is
          if Num < 0 then -- reading whole line
             if FD.Str_End - FD.Line_End > 0 then
                I := FD.Line_End + 1;
+
                loop
                   exit when I > Last (FD.File)
                     or else (FD.Str (I) = ACL.LF or FD.Str (I) = ACL.CR);
@@ -825,8 +834,8 @@ package body Adaview.PS is
                   FD.Line_End := I;
                   FD.Line_Len := FD.Line_End - FD.Line_Begin + 1;
                   exit Outter;
-               elsif FD.Offs + Offset (FD.File) + File_Size (FD.Str_End)
-                 = FD.Size
+               elsif FD.Offs + Offset (FD.File) + File_Size (FD.Str_End) =
+                 FD.Size
                then
                   return False;
                else
@@ -914,7 +923,7 @@ package body Adaview.PS is
       end if;
    end Is_Comment;
 
------------------------------------------------------------------------
+   -----------------------------------------------------------------------
    function Is_Begin (FD : File_Data_T; Content : String) return Boolean is
    begin
       return Is_Comment (FD, Content, 7);
@@ -933,6 +942,7 @@ package body Adaview.PS is
    begin
       Dbg.Put_Line (Dbg.INFO, "Skip until " & Target);
       FD.Skipped_Line := True;
+
       loop
          if not Get_Chars (FD, -1) then
             return False;
@@ -949,6 +959,7 @@ package body Adaview.PS is
    begin
       Dbg.Put_Line (Dbg.INFO, "Skipp until " & Target & " or " & Target_2);
       FD.Skipped_Line := True;
+
       loop
          if not Get_Chars (FD, -1) then
             return False;
@@ -969,9 +980,9 @@ package body Adaview.PS is
    begin
       if Length (Ctx.Cur_Doc.DCS_Name) > 0 then
          -- handle wrong password or need password case ...
-         if Index (Current_Line,
-                   "This file requires a password for access.") > 0
-           or Index (Current_Line, "Password did not work.") > 0
+         if Index (Current_Line, "This file requires a password for access.") >
+           0 or
+           Index (Current_Line, "Password did not work.") > 0
          then
             Ada.Directories.Delete_File (To_String (Ctx.Cur_Doc.DCS_Name));
             Close (File.File);
@@ -983,7 +994,7 @@ package body Adaview.PS is
    ---------------------------------------------------------------------------
    function Get_Text_Line
      (FD     : File_Data_T;
-      Offset : Integer) return Unbounded_String is
+      Offset : Integer) return XString is
       Line_Idx : Integer := FD.Line_Begin + Offset;
    begin
       while Line_Idx <= FD.Line_End loop
@@ -992,18 +1003,16 @@ package body Adaview.PS is
          Increment (Line_Idx);
       end loop;
       if Line_Idx > FD.Line_End then
-         return Null_Unbounded_String;
+         return Null_XString;
       end if;
       if FD.Str (Line_Idx) = '(' then
          return Get_Text (FD, Line_Idx - FD.Line_Begin);
       end if;
-      return To_Unbounded_String (String (FD.Str (Line_Idx .. FD.Line_End)));
+      return To_XString (String (FD.Str (Line_Idx .. FD.Line_End)));
    end Get_Text_Line;
 
    ---------------------------------------------------------------------------
-   function Get_Text
-     (FD     : File_Data_T;
-      Offset : Integer) return Unbounded_String is
+   function Get_Text (FD : File_Data_T; Offset : Integer) return XString is
       Line_Idx     : Integer          := FD.Line_Begin + Offset;
       Level        : Integer;
       Quoted       : Boolean          := False;
@@ -1022,6 +1031,7 @@ package body Adaview.PS is
          Level  := 0;
          Quoted := True;
          Increment (Line_Idx);
+
          while Line_Idx <= FD.Line_End
            and then not (FD.Str (Line_Idx) = ')' and then Level = 0)
            and then Text_End > PS_Line_Length
@@ -1034,34 +1044,42 @@ package body Adaview.PS is
                      Text (Text_End) := ACL.LF;
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when 'r' =>
                      Text (Text_End) := ACL.CR;
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when 't' =>
                      Text (Text_End) := ACL.HT;
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when 'b' =>
                      Text (Text_End) := ACL.BEL;
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when 'f' =>
                      Text (Text_End) := ACL.LF;
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when '\' =>
                      Text (Text_End) := '\';
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when '(' =>
                      Text (Text_End) := '(';
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when ')' =>
                      Text (Text_End) := ')';
                      Increment (Text_End);
                      Increment (Line_Idx, 2);
+
                   when '0' .. '9' =>
                      if Line_Idx + 2 <= FD.Line_End then
                         Char2 := FD.Str (Line_Idx + 2);
@@ -1073,25 +1091,25 @@ package body Adaview.PS is
                               if Is_Digit (Char3) then
                                  Text (Text_End) :=
                                    Character'Val
-                                     (((Character'Pos (Char1) - Zero_Pos) * 8
-                                       + (Character'Pos (Char2) - Zero_Pos))
-                                      * 8
-                                      + (Character'Pos (Char3) - Zero_Pos));
+                                     (((Character'Pos (Char1) - Zero_Pos) * 8 +
+                                       (Character'Pos (Char2) - Zero_Pos)) *
+                                      8 +
+                                      (Character'Pos (Char3) - Zero_Pos));
                                  Increment (Text_End);
                                  Increment (Line_Idx, 4);
                               else
                                  Text (Text_End) :=
                                    Character'Val
-                                     ((Character'Pos (Char1) - Zero_Pos) * 8
-                                      + (Character'Pos (Char2) - Zero_Pos));
+                                     ((Character'Pos (Char1) - Zero_Pos) * 8 +
+                                      (Character'Pos (Char2) - Zero_Pos));
                                  Increment (Text_End);
                                  Increment (Line_Idx, 3);
                               end if;
                            else
                               Text (Text_End) :=
                                 Character'Val
-                                  ((Character'Pos (Char1) - Zero_Pos) * 8
-                                   + (Character'Pos (Char2) - Zero_Pos));
+                                  ((Character'Pos (Char1) - Zero_Pos) * 8 +
+                                   (Character'Pos (Char2) - Zero_Pos));
                               Increment (Text_End);
                               Increment (Line_Idx, 3);
                            end if;
@@ -1101,13 +1119,13 @@ package body Adaview.PS is
                            Increment (Text_End);
                            Increment (Line_Idx, 2);
                         end if;
-
                      else
                         Text (Text_End) :=
                           Character'Val (Character'Pos (Char1) - Zero_Pos);
                         Increment (Text_End);
                         Increment (Line_Idx, 2);
                      end if;
+
                   when others =>
                      Text (Text_End) := FD.Str (Line_Idx + 1);
                      Increment (Text_End);
@@ -1137,20 +1155,20 @@ package body Adaview.PS is
          while Line_Idx <= FD.Line_End loop
             Char := FD.Str (Line_Idx);
             exit when not
-              (Char = ACL.Space
-               or Char = ACL.HT
-               or Char = ACL.LF
-               or Char = ACL.CR)
-              and Text_End > PS_Line_Length;
+              (Char = ACL.Space or
+               Char = ACL.HT or
+               Char = ACL.LF or
+               Char = ACL.CR) and
+              Text_End > PS_Line_Length;
             Text (Text_End) := Char;
             Increment (Text_End);
             Increment (Line_Idx);
          end loop;
       end if;
       if not Quoted and Text_End = 1 then
-         return Null_Unbounded_String;
+         return Null_XString;
       else
-         return To_Unbounded_String (Text (1 .. Text_End - 1));
+         return To_XString (Text (1 .. Text_End - 1));
       end if;
    end Get_Text;
 
@@ -1273,9 +1291,8 @@ package body Adaview.PS is
          return True;
       end if;
 
-      return FD.Str (I) = ACL.LF
-        or FD.Str (I) = ACL.CR
-        or
+      return FD.Str (I) = ACL.LF or
+        FD.Str (I) = ACL.CR or
         (FD.Str (I) = '%'
          and then
          (FD.Str (FD.Line_Begin) /= '%'
@@ -1299,5 +1316,6 @@ package body Adaview.PS is
 
       return Integer'Value (String (FD.Str (Offset .. End_Idx)));
    end Get_Number;
+
 end Adaview.PS;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

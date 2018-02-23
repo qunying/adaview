@@ -24,6 +24,7 @@ with Glib.Option;
 with Glib.Error;
 
 package Glib.Option.Extra is
+
    use Glib.Option;
    use Glib.Error;
 

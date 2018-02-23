@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2014-2017 Zhu Qun-Ying.                                     --
+-- Copyright (c) 2014-2018 Zhu Qun-Ying.                                     --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -135,7 +135,7 @@ package Adaview.PS is
    -- %%EOF
    --
    --
-   -- + A DC-3 received severe damage to one of its wings.  The wing was a total
+   --  A DC-3 received severe damage to one of its wings.  The wing was a total
    --  loss.  There was no replacement readily available, so the mechanic
    --  installed a wing from a DC-2.
 

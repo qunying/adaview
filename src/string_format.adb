@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Adaview - A PostScript/PDF viewer based on ghostscript                    --
 --                                                                           --
--- Copyright (c) 2015-2017 Zhu Qun-Ying.                                          --
+-- Copyright (c) 2015-2018 Zhu Qun-Ying.                                          --
 --                                                                           --
 -- This file is part of Adaview.                                             --
 --                                                                           --
@@ -28,14 +28,15 @@ package body String_Format is
    ---------------------------------------------------------------------------
    function Format_String
      (Format   : String;
-      Elements : UString_Array) return String is
-      Last_Digit_Pos : Positive;
-      Idx            : Positive;
-      K              : Positive           := Format'First;
-      Result         : Unbounded_String   := +"";
+      Elements : XString_Array) return String is
+      Last_Digit_Pos : Natural;
+      Idx            : Natural;
+      K              : Natural            := Format'First;
+      Result         : XString            := +"";
       Esc_Char       : constant Character := '%';
+
    begin
-      if Elements = Null_UString_Array then
+      if Elements = Null_XString_Array then
          raise No_Element with -"Elements array is empty.";
       end if;
 
@@ -43,6 +44,7 @@ package body String_Format is
          -- check if we have %
          if Format (K) = Esc_Char and K < Format'Last then
             Last_Digit_Pos := K;
+
             for J in K + 1 .. Format'Last loop
                -- check numbers follow the % character
                if Character'Pos (Format (J)) >= Character'Pos ('0') and
@@ -53,6 +55,7 @@ package body String_Format is
                   exit;
                end if;
             end loop;
+
             if Last_Digit_Pos > K then
                Idx := Positive'Value (Format (K + 1 .. Last_Digit_Pos));
                if Idx > Elements'Last then
@@ -62,7 +65,7 @@ package body String_Format is
                        ("Format string has %1, larger than maximum " &
                         "index %2 of Elements."),
                        (+Format (K .. Last_Digit_Pos),
-                        +Trim (Positive'Image (Elements'Last), Left)));
+                        +Trim (Natural'Image (Elements'Last), Left)));
                end if;
                Append (Result, Elements (Idx));
                K := Last_Digit_Pos;
