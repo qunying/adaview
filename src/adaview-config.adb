@@ -68,6 +68,7 @@ package body Adaview.Config is
    Backend_Mark    : constant String := "Backend";
 
    type Gboolean_Access is access all Gboolean;
+
    package ACL renames Ada.Characters.Latin_1;
    package Sys_Addr is new System.Address_To_Access_Conversions (Integer);
    package Char_Ptr_Addr is new System.Address_To_Access_Conversions
@@ -182,19 +183,19 @@ package body Adaview.Config is
         Value ("XDG_CONFIG_HOME", Home & "/.config");
    begin
       -- form data and config home, follow the xdg guideline
-      Data_Path := +(Data_Home & "/" & Prg_Name);
-      Conf_Path := +(Conf_Home & "/" & Prg_Name);
+      Append(Data_Path, Data_Home & "/" & Prg_Name);
+      Append(Conf_Path, Conf_Home & "/" & Prg_Name);
+
       -- make directories
       Create_Path (To_String (Data_Path));
       Create_Path (To_String (Conf_Path));
 
       -- ok, try forming data and config file path
-      ctx.Data_File   := +(To_String (Data_Path) & "/history");
-      ctx.Config_File := +(To_String (Conf_Path) & "/config.txt");
+      Append(ctx.Data_File, To_String (Data_Path) & "/history");
+      Append(ctx.Config_File, To_String (Conf_Path) & "/config.txt");
       Load_History (ctx);
       Dbg.Put_Line
-        (Dbg.TRACE,
-         "Got" & Integer'Image (ctx.Total_Doc) & " entries in history");
+        (Dbg.TRACE, "Got" & ctx.Total_Doc'Image & " entries in history");
    end Load_Config;
 
    ---------------------------------------------------------------------------
@@ -317,9 +318,8 @@ package body Adaview.Config is
 
    ---------------------------------------------------------------------------
    function To_Address (C : Gboolean_Access) return System.Address is
-      function Convert is new Ada.Unchecked_Conversion
-        (Gboolean_Access,
-         Glib.C_Proxy);
+      function Convert is new Ada.Unchecked_Conversion (Gboolean_Access,
+                                                        Glib.C_Proxy);
    begin
       return Glib.To_Address (Convert (C));
    end To_Address;

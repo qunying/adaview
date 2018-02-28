@@ -32,18 +32,16 @@ package Adaview.Sys_Util is
 
    type Compress_T is (NO_COMPRESS, COMPRESS, GZIP, BZIP2, XZ, ZSTD, LZIP);
 
-   procedure Get_File_MD5
-     (File_Name : in     XString;
-      Temp_Name : in out XString;
-      Checksum  :    out String);
+   procedure Get_File_MD5 (File_Name : in     XString;
+                           Temp_Name : in out XString;
+                           Checksum  :    out String);
    -- Calculate the MD5 sum of a given file.
    -- Auto decompress if it is compressed with compress/gzip/bzip2/xz and
    -- calculate the MD5 sum against the uncompressed file.
 
-   procedure Create_PDF_DSC_File
-     (PDF_File : in     XString;
-      DSC_File : in out XString;
-      Password : in     XString);
+   procedure Create_PDF_DSC_File (PDF_File : in     XString;
+                                  DSC_File : in out XString;
+                                  Password : in     XString);
 
    procedure Increment (Num : in out Integer);
    pragma Inline (Increment);

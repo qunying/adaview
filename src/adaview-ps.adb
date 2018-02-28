@@ -70,10 +70,9 @@ package body Adaview.PS is
 
    function Get_Chars (FD : in out File_Data_T; Num : Integer) return Boolean;
 
-   function Is_Comment
-     (FD      : File_Data_T;
-      Content : String;
-      Offset  : Integer) return Boolean;
+   function Is_Comment (FD      : File_Data_T;
+                        Content : String;
+                        Offset  : Integer) return Boolean;
    pragma Inline (Is_Comment);
    function DSC_Comment (FD : File_Data_T) return Boolean;
    pragma Inline (DSC_Comment);
@@ -81,13 +80,11 @@ package body Adaview.PS is
    pragma Inline (Is_Begin);
    function Is_End (FD : File_Data_T; Content : String) return Boolean;
    pragma Inline (Is_End);
-   function Skip_Until
-     (FD     : in out File_Data_T;
-      Target :        String) return Boolean;
+   function Skip_Until (FD     : in out File_Data_T;
+                        Target :        String) return Boolean;
    pragma Inline (Skip_Until);
-   function Skip_Until_2
-     (FD               : in out File_Data_T;
-      Target, Target_2 :        String) return Boolean;
+   function Skip_Until_2 (FD               : in out File_Data_T;
+                          Target, Target_2 :        String) return Boolean;
    pragma Inline (Skip_Until_2);
 
    function First_Word (FD : File_Data_T; Offset : Integer) return Integer;
@@ -95,9 +92,8 @@ package body Adaview.PS is
 
    pragma Inline (First_Word);
 
-   procedure Test_For_PDF_Password
-     (Ctx  :        Context_T;
-      File : in out File_Data_T);
+   procedure Test_For_PDF_Password (Ctx  :        Context_T;
+                                    File : in out File_Data_T);
    pragma Inline (Test_For_PDF_Password);
 
    function Get_Text_Line (FD : File_Data_T; Offset : Integer) return XString;
@@ -108,10 +104,9 @@ package body Adaview.PS is
    -- return the next text string on the line.
    -- return Null_Unbonded_String if nothing is present.
 
-   function Is_Word
-     (FD     : File_Data_T;
-      Offset : Integer;
-      Word   : String) return Boolean;
+   function Is_Word (FD     : File_Data_T;
+                     Offset : Integer;
+                     Word   : String) return Boolean;
    pragma Inline (Is_Word);
 
    function Parse_Bounding_Box
@@ -121,10 +116,9 @@ package body Adaview.PS is
 
    procedure Get_Number (Buf : String; Num1, Num2, Count : in out Integer);
 
-   procedure Get_Number
-     (Buf        :        String;
-      Num1, Num2 : in out Float;
-      Count      : in out Integer);
+   procedure Get_Number (Buf        :        String;
+                         Num1, Num2 : in out Float;
+                         Count      : in out Integer);
 
    function Blank (FD : File_Data_T) return Boolean;
 
@@ -157,10 +151,6 @@ package body Adaview.PS is
       Ignore            : Boolean := False;
       Begin_Setup_Found : Boolean := False;
       Respect_EOF       : Boolean := False;
-
-      function Eq
-        (Left, Right : String) return Boolean renames
-        Ada.Strings.Equal_Case_Insensitive;
 
       End_Comment       : constant String := "%EndComment";
       Title             : constant String := "Title:";
@@ -376,10 +366,7 @@ package body Adaview.PS is
                -- name.  Case insensitive compares are only used for
                -- PaperSize comments.
                for K in 1 .. Positive (Length (Medias)) loop
-                  if Eq
-                      (To_String (Media.Name),
-                       To_String (Medias (K).Name))
-                  then
+                  if Media.Name = Medias (K).Name then
                      Media.Width  := Medias (K).Width;
                      Media.Height := Medias (K).Height;
                      Append (Ctx.Cur_Doc.Media, Media);
@@ -395,10 +382,7 @@ package body Adaview.PS is
                exit when Media.Name = Null_XString;
 
                for K in 1 .. Positive (Length (Medias)) loop
-                  if Eq
-                      (To_String (Media.Name),
-                       To_String (Medias (K).Name))
-                  then
+                  if Media.Name = Medias (K).Name then
                      Media.Width  := Medias (K).Width;
                      Media.Height := Medias (K).Height;
                      Append (Ctx.Cur_Doc.Media, Media);
@@ -425,10 +409,7 @@ package body Adaview.PS is
 
                   Internal :
                   for K in 1 .. Positive (Length (Medias)) loop
-                     if Eq
-                         (To_String (Media.Name),
-                          To_String (Medias (K).Name))
-                     then
+                     if Media.Name = Medias (K).Name then
                         Media.Width  := Medias (K).Width;
                         Media.Height := Medias (K).Height;
                         Append (Ctx.Cur_Doc.Media, Media);
@@ -600,10 +581,7 @@ package body Adaview.PS is
                -- PaperSize comments.
 
                for K in 1 .. Positive (Length (Medias)) loop
-                  if Eq
-                      (To_String (Media.Name),
-                       To_String (Medias (K).Name))
-                  then
+                  if Media.Name = Medias (K).Name then
                      Ctx.Cur_Doc.Default_Page_Media := Medias (K);
                      Page_Media_Set                 := True;
                      exit;
@@ -696,9 +674,7 @@ package body Adaview.PS is
       FD.File      := Open_Read (File_Name);
       FD.Size      := Length (FD.File);
       FD.Page_Size := Get_Page_Size;
-      Dbg.Put_Line
-        (Dbg.TRACE,
-         "File [" & File_Name & "] size" & FD.Size'Image);
+      Dbg.Put_Line (Dbg.TRACE, "File [" & File_Name & "] size" & FD.Size'Image);
    end IO_Init;
 
    ---------------------------------------------------------------------------
@@ -801,9 +777,8 @@ package body Adaview.PS is
    end Read_Line;
 
    ---------------------------------------------------------------------------
-   function Get_Chars
-     (FD  : in out File_Data_T;
-      Num :        Integer) return Boolean is
+   function Get_Chars (FD  : in out File_Data_T;
+                       Num :        Integer) return Boolean is
       I            : Integer;
       Request_Size : Integer;
    begin
@@ -896,13 +871,11 @@ package body Adaview.PS is
    end DSC_Comment;
 
    -----------------------------------------------------------------------
-   function Is_Comment
-     (FD      : File_Data_T;
-      Content : String;
-      Offset  : Integer) return Boolean is
+   function Is_Comment (FD      : File_Data_T;
+                        Content : String;
+                        Offset  : Integer) return Boolean is
       Start_Idx : constant Integer := FD.Line_Begin + Offset;
-      function Eq
-        (Left, Right : String) return Boolean renames
+      function Eq (Left, Right : String) return Boolean renames
         Ada.Strings.Equal_Case_Insensitive;
    begin
       if FD.Line_Len + Offset >= Content'Length

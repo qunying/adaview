@@ -56,6 +56,7 @@ begin
    Text_Domain (Adaview.Version.Prg_Name);
    Bind_Text_Domain (Adaview.Version.Prg_Name, Adaview.Path.Locale);
 
+   Dbg.Init;
    Dbg.Set_Flag (Dbg.TRACE);
 
    Adaview.Config.Process_Options (Doc_Ctx);

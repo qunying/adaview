@@ -33,6 +33,7 @@ with GNAT.MD5;
 package body Adaview.Sys_Util is
 
    package Dbg renames Adaview.Debug;
+
    Cmd_Gzip  : aliased String := "gzip";
    Cmd_Bzip2 : aliased String := "bzip2";
    Cmd_Xz    : aliased String := "xz";
@@ -43,10 +44,9 @@ package body Adaview.Sys_Util is
 
    type Byte_String_T is array (Positive range <>) of Byte_T;
 
-   procedure Decompress_File
-     (File_Name     : in     XString;
-      Temp_Name     : in out XString;
-      Compress_Type : in     Compress_T);
+   procedure Decompress_File (File_Name     : in     XString;
+                              Temp_Name     : in out XString;
+                              Compress_Type : in     Compress_T);
 
    ---------------------------------------------------------------------------
    function system (Arg : String) return Integer is
@@ -74,10 +74,9 @@ package body Adaview.Sys_Util is
    end mkstemp;
 
    ---------------------------------------------------------------------------
-   procedure Decompress_File
-     (File_Name     : in     XString;
-      Temp_Name     : in out XString;
-      Compress_Type : in     Compress_T) is
+   procedure Decompress_File (File_Name     : in     XString;
+                              Temp_Name     : in out XString;
+                              Compress_Type : in     Compress_T) is
       Base          : constant String := Base_Name (To_String (File_Name));
       Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
       CMD_Ptr       : GNAT.OS_Lib.String_Access;
@@ -121,10 +120,9 @@ package body Adaview.Sys_Util is
    end Decompress_File;
 
    ---------------------------------------------------------------------------
-   procedure Create_PDF_DSC_File
-     (PDF_File : in     XString;
-      DSC_File : in out XString;
-      Password : in     XString) is
+   procedure Create_PDF_DSC_File (PDF_File : in     XString;
+                                  DSC_File : in out XString;
+                                  Password : in     XString) is
       Base          : constant String := Base_Name (To_String (PDF_File));
       Template_Name : String          := "/tmp/adaview_" & Base & ".XXXXXX";
       Ret           : Integer;
@@ -155,10 +153,9 @@ package body Adaview.Sys_Util is
    end Create_PDF_DSC_File;
 
    ---------------------------------------------------------------------------
-   procedure Get_File_MD5
-     (File_Name : in     XString;
-      Temp_Name : in out XString;
-      Checksum  :    out String) is
+   procedure Get_File_MD5 (File_Name : in     XString;
+                           Temp_Name : in out XString;
+                           Checksum  :    out String) is
       use Ada.Streams;
 
       In_File         : Stream_IO.File_Type;

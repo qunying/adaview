@@ -25,6 +25,8 @@ package Adaview.Debug is
 
    type Flag is (NONE, ERROR, WARNING, INFO, TRACE);
 
+   procedure Init;
+
    procedure Set_Flag (In_Flag : Flag);
 
    function Get_Flag return Flag;
@@ -33,8 +35,10 @@ package Adaview.Debug is
 
    procedure Put_Line (In_Flag : Flag; Msg : String);
 
-   procedure New_Line
-     (In_Flag : Flag;
-      Count   : Ada.Text_IO.Positive_Count := 1);
+   procedure New_Line;
+   pragma Inline (New_Line);
+
+   procedure New_Line (In_Flag : Flag;
+                       Count   : Ada.Text_IO.Positive_Count := 1);
 end Adaview.Debug;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

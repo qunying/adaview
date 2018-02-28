@@ -26,14 +26,14 @@ package Adaview.Version is
 
    use Ada.Strings.Fixed;
 
-   Major : constant                  := 0;
-   Minor : constant                  := 0;
-   Date  : constant                  := 20180223;
-   Text  : constant Glib.UTF8_String :=
-     Trim (Integer'Image (Major), Ada.Strings.Left) &
-     "." &
-     Trim (Integer'Image (Minor), Ada.Strings.Left) &
-     Integer'Image (Date);
+   Major     : constant Integer := 0;
+   Major_Str : constant String  := Trim (Major'Image, Ada.Strings.Left);
+   Minor     : constant Integer := 0;
+   Minor_Str : constant String  := Trim (Minor'Image, Ada.Strings.Left);
+   Date_Str  : constant String  := "2018-02-23";
+
+   Text : constant Glib.UTF8_String :=
+     Major_Str & "." & Minor_Str & " " & Date_Str;
 
    Prg_Name : constant String := "adaview";
 
@@ -45,5 +45,6 @@ package Adaview.Version is
 
    function Get_License return Glib.UTF8_String;
    -- return program license information
+
 end Adaview.Version;
 -- vim: set expandtab ts=3 sts=3 sw=3 smarttab :

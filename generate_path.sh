@@ -14,7 +14,7 @@ share_dir=$prefix/share
 path_ads=src/adaview-path.ads
 
 function generate_path_ads() {
-    echo "Generating $path_ads for $path_dir"
+    echo "Generating $path_ads for $prefix"
     gen_time=`date +"%F %R%z"`
     cat > $path_ads <<EOF
 -- This is an automatically generated file during compilation
@@ -29,7 +29,7 @@ EOF
 }
 
 if [ -f "$path_ads" ]; then
-    grep -w "\"${local_edir}\"" $path_ads > /dev/null
+    grep -w "\"${locale_dir}\"" $path_ads > /dev/null
     if [ "$?" != "0" ]; then
 	generate_path_ads
     fi
